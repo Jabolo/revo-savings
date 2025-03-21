@@ -1,0 +1,40 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap');
+
+body {
+  font-family: 'Roboto', sans-serif;
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  padding-top: 30px;
+}
+
+.container {
+  max-width: 900px;
+}
+
+.card {
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  border: none;
+  border-radius: 8px;
+}
+
+.card-body {
+  padding: 20px;
+}
+
+.result-table th, .result-table td {
+  vertical-align: middle;
+}
+
+.best-plan {
+  font-weight: bold;
+  color: #198754;
+}
+
+.fade-out {
+    opacity: 0;
+    transition: opacity 0.3s ease-out;
+  }
+  
+  .fade-in {
+    opacity: 1;
+    transition: opacity 0.3s ease-in;
+  }

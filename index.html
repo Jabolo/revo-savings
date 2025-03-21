@@ -1,0 +1,137 @@
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Symulacja Zysków z Oszczędności</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Your external stylesheet -->
+    <link rel="stylesheet" href="styles.css">
+  </head>
+
+<body>
+    <div class="container">
+      <h1 class="mb-4 text-center">Symulacja Zysków z Oszczędności</h1>
+      
+      <!-- Formularz wejściowy -->
+      <div id="simulationSection" class="card mb-4">
+        <div class="card-body">
+          <form id="simulationForm">
+            <!-- input fields remain as before -->
+            <div class="mb-3 row">
+              <label for="savingsAmount" class="col-sm-4 col-form-label">Kwota oszczędności (PLN):</label>
+              <div class="col-sm-8">
+                <input type="number" class="form-control" id="savingsAmount" placeholder="np. 20000" required>
+              </div>
+            </div>
+            <div class="mb-3 row">
+              <label for="taxRate" class="col-sm-4 col-form-label">Podatek od zysków (%) (domyślnie 19%):</label>
+              <div class="col-sm-8">
+                <input type="number" class="form-control" id="taxRate" value="19" step="0.1" required>
+              </div>
+            </div>
+            <!-- plans table remains unchanged -->
+            <h5>Plany Oszczędności</h5>
+            <div class="table-responsive mb-3">
+              <table class="table table-bordered">
+                <thead class="table-light">
+                  <tr>
+                    <th>Plan</th>
+                    <th>Miesięczny koszt (PLN)</th>
+                    <th>Oprocentowanie roczne (%)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- rows for each plan (unchanged) -->
+                  <tr>
+                    <td>Standard</td>
+                    <td>
+                      <input type="number" class="form-control" id="costStandard" value="0" step="0.01">
+                    </td>
+                    <td>
+                      <input type="number" class="form-control" id="rateStandard" value="3.00" step="0.01">
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Plus (19,99)</td>
+                    <td>
+                      <input type="number" class="form-control" id="costPlus1" value="19.99" step="0.01">
+                    </td>
+                    <td>
+                      <input type="number" class="form-control" id="ratePlus1" value="3.25" step="0.01">
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Premium (33,33)</td>
+                    <td>
+                      <input type="number" class="form-control" id="costPremium" value="33.33" step="0.01">
+                    </td>
+                    <td>
+                      <input type="number" class="form-control" id="ratePremium" value="4.00" step="0.01">
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Plus (55,99)</td>
+                    <td>
+                      <input type="number" class="form-control" id="costPlus2" value="55.99" step="0.01">
+                    </td>
+                    <td>
+                      <input type="number" class="form-control" id="ratePlus2" value="4.50" step="0.01">
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Plus (210)</td>
+                    <td>
+                      <input type="number" class="form-control" id="costPlus3" value="210.00" step="0.01">
+                    </td>
+                    <td>
+                      <input type="number" class="form-control" id="ratePlus3" value="5.00" step="0.01">
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <button type="submit" class="btn btn-primary">Oblicz</button>
+          </form>
+        </div>
+      </div>
+      
+      <!-- Sekcja wyników -->
+      <div id="resultSection" class="card mb-4 d-none">
+        <div class="card-body">
+          <h3 class="mb-3">Wyniki symulacji</h3>
+          <div class="mb-3">
+            <p id="bestPlan" class="fs-5"></p>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-bordered result-table">
+              <thead class="table-light">
+                <tr>
+                  <th>Plan</th>
+                  <th>Miesięczny koszt (PLN)</th>
+                  <th>Roczny koszt (PLN)</th>
+                  <th>Oprocentowanie roczne (%)</th>
+                  <th>Zysk brutto (PLN)</th>
+                  <th>Zysk netto (PLN)</th>
+                  <th>Zysk końcowy (PLN)</th>
+                </tr>
+              </thead>
+              <tbody id="resultTableBody">
+              </tbody>
+            </table>
+          </div>
+          <div class="text-center mt-3">
+            <button id="editFormBtn" class="btn btn-secondary">Edytuj dane</button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Footer with official comparison link -->
+      <footer class="mt-4 text-center">
+        <p>Porównaj plany: <a href="https://www.revolut.com/pl-PL/our-pricing-plans/" target="_blank">Oficjalne porównanie</a></p>
+      </footer>
+    </div>
+    
+    <!-- External JS -->
+    <script src="script.js"></script>
+    </body>
+    </html>

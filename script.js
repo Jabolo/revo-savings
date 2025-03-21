@@ -1,4 +1,15 @@
+
 document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('recalculateBtn').addEventListener('click', function() {
+    // Update main form fields from the modify panel
+    document.getElementById('savingsAmount').value = document.getElementById('savingsAmountModify').value;
+    document.getElementById('taxRate').value = document.getElementById('taxRateModify').value;
+    document.getElementById('positionCost').value = document.getElementById('positionCostModify').value;
+    
+    // Recalculate results
+    showLoadingIndicator();
+    setTimeout(calculateResults, 600);
+  });
   // Add event listener for form submission
   document.getElementById('simulationForm').addEventListener('submit', function(e) {
     e.preventDefault();
@@ -35,7 +46,7 @@ function calculateResults() {
   // Pobierz dane wejściowe
   const savings = parseFloat(document.getElementById('savingsAmount').value);
   const taxRate = parseFloat(document.getElementById('taxRate').value);
-  const positionCost = parseFloat(document.getElementById('positionCost').value); // Now fetching position cost
+  const positionCost = parseFloat(document.getElementById('positionCost').value); // New field
 
   // Pobierz dane dla poszczególnych planów
   const plans = [
@@ -58,7 +69,7 @@ function calculateResults() {
 
     results.push({
       plan: plan.planName,
-      monthlyCost: totalMonthlyCost.toFixed(2), // Updated monthly cost
+      monthlyCost: totalMonthlyCost.toFixed(2),
       annualCost: annualCost.toFixed(2),
       rate: plan.rate.toFixed(2),
       grossInterest: grossInterest.toFixed(2),
@@ -86,6 +97,11 @@ function calculateResults() {
 
   // Show results section
   showResultsSection();
+
+  // Populate the modify panel fields with current values
+  document.getElementById('savingsAmountModify').value = document.getElementById('savingsAmount').value;
+  document.getElementById('taxRateModify').value = document.getElementById('taxRate').value;
+  document.getElementById('positionCostModify').value = document.getElementById('positionCost').value;
 }
 
 function populateResultsTable(results, bestPlan) {

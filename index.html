@@ -21,40 +21,54 @@
       <i class="fas fa-chart-line me-2"></i>Symulacja Zysków z Oszczędności
     </h1>
     
-    <!-- Formularz wejściowy -->
-    <div id="simulationSection" class="card mb-4">
-      <div class="card-body">
-        <form id="simulationForm">
-          <!-- In the simulation form section -->
-<div class="mb-4 row">
-  <label for="savingsAmount" class="col-sm-4 col-form-label">
-    <i class="fas fa-wallet me-2 text-primary"></i>Kwota oszczędności (PLN):
-  </label>
-  <div class="col-sm-8">
-    <input type="number" class="form-control" id="savingsAmount" placeholder="np. 50000" value="50000" required>
-  </div>
+<!-- Description at the top -->
+<div class="mb-4 text-center">
+  <p class="lead">
+    Ten kalkulator symuluje zyski z oszczędności w Revo Savings, gdzie odsetki naliczane są codziennie. 
+    Wprowadź kwotę oszczędności, stawkę podatku oraz koszt utrzymania pozycji (np. koszt pozyczki), aby zobaczyć symulację. 
+    <br>Domyślne ustawienia odpowiadają ofercie Revo z 1-dniowym naliczaniem odsetek.
+  </p>
 </div>
-<div class="mb-4 row">
-  <label for="taxRate" class="col-sm-4 col-form-label">
-    <i class="fas fa-percent me-2 text-primary"></i>Podatek od zysków (%):
-  </label>
-  <div class="col-sm-8">
-    <input type="number" class="form-control" id="taxRate" value="19" step="0.1" required>
-  </div>
-</div>
-<div class="mb-4 row">
-  <label for="positionCost" class="col-sm-4 col-form-label">
-    <i class="fas fa-money-bill-wave me-2 text-primary"></i>Koszt pozyskania/utrzymania pozycji (PLN/mies.):
-  </label>
-  <div class="col-sm-8">
-    <input type="number" class="form-control" id="positionCost" value="0" step="0.01" required>
-  </div>
-</div>
-          
-          <h5 class="mt-4 mb-3">
-            <i class="fas fa-piggy-bank me-2 text-primary"></i>Plany Oszczędności
-          </h5>
-          <div class="table-responsive mb-4">
+
+<!-- Main Input Fields -->
+<div id="simulationSection" class="card mb-4">
+  <div class="card-body">
+    <form id="simulationForm">
+      <div class="mb-4 row">
+        <label for="savingsAmount" class="col-sm-4 col-form-label">
+          <i class="fas fa-wallet me-2 text-primary"></i>Kwota oszczędności (PLN):
+        </label>
+        <div class="col-sm-8">
+          <input type="number" class="form-control" id="savingsAmount" placeholder="np. 50000" value="50000" required>
+        </div>
+      </div>
+      <div class="mb-4 row">
+        <label for="taxRate" class="col-sm-4 col-form-label">
+          <i class="fas fa-percent me-2 text-primary"></i>Podatek od zysków (%):
+        </label>
+        <div class="col-sm-8">
+          <input type="number" class="form-control" id="taxRate" value="19" step="0.1" required>
+        </div>
+      </div>
+      <div class="mb-4 row">
+        <label for="positionCost" class="col-sm-4 col-form-label">
+          <i class="fas fa-money-bill-wave me-2 text-primary"></i>Koszt pozyskania/utrzymania pozycji (PLN/mies.):
+        </label>
+        <div class="col-sm-8">
+          <input type="number" class="form-control" id="positionCost" value="0" step="0.01" required>
+        </div>
+      </div>
+      
+      <!-- Collapsible Panel for Detailed Plans -->
+      <div class="mb-4 text-center">
+        <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#planDetails" aria-expanded="false" aria-controls="planDetails">
+          Pokaż szczegóły planów oszczędności
+        </button>
+      </div>
+      <div class="collapse" id="planDetails">
+        <div class="card card-body">
+          <h5 class="mb-3">Plany Oszczędności w Revo</h5>
+          <div class="table-responsive">
             <table class="table table-bordered plan-table">
               <thead class="table-light">
                 <tr>
@@ -112,14 +126,18 @@
               </tbody>
             </table>
           </div>
-          <div class="text-center">
-            <button type="submit" class="btn btn-primary">
-              <i class="fas fa-calculator me-2"></i>Oblicz
-            </button>
-          </div>
-        </form>
+        </div>
       </div>
-    </div>
+      
+      <!-- Oblicz Button -->
+      <div class="text-center mt-4">
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-calculator me-2"></i>Oblicz
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
     
     <!-- Sekcja wyników -->
     <div id="resultSection" class="card mb-4 d-none">

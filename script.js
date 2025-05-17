@@ -51,10 +51,10 @@ function calculateResults() {
   // Pobierz dane dla poszczególnych planów
   const plans = [
     { planName: 'Standard', cost: parseFloat(document.getElementById('costStandard').value), rate: parseFloat(document.getElementById('rateStandard').value) },
-    { planName: 'Plus (19,99)', cost: parseFloat(document.getElementById('costPlus1').value), rate: parseFloat(document.getElementById('ratePlus1').value) },
+    { planName: 'Plus (19,99)', cost: parseFloat(document.getElementById('costPlus').value), rate: parseFloat(document.getElementById('ratePlus').value) },
     { planName: 'Premium (33,33)', cost: parseFloat(document.getElementById('costPremium').value), rate: parseFloat(document.getElementById('ratePremium').value) },
-    { planName: 'Plus (55,99)', cost: parseFloat(document.getElementById('costPlus2').value), rate: parseFloat(document.getElementById('ratePlus2').value) },
-    { planName: 'Plus (210)', cost: parseFloat(document.getElementById('costPlus3').value), rate: parseFloat(document.getElementById('ratePlus3').value) }
+    { planName: 'Metal (55,99)', cost: parseFloat(document.getElementById('costMetal').value), rate: parseFloat(document.getElementById('rateMetal').value) },
+    { planName: 'Ultra (210)', cost: parseFloat(document.getElementById('costUltra').value), rate: parseFloat(document.getElementById('rateUltra').value) }
   ];
 
   let results = [];

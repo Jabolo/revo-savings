@@ -1,21 +1,24 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-  document.getElementById('recalculateBtn').addEventListener('click', function() {
+  const recalcButton = document.getElementById('recalculateBtn');
+  recalcButton.addEventListener('click', function() {
     // Update main form fields from the modify panel
     document.getElementById('savingsAmount').value = document.getElementById('savingsAmountModify').value;
     document.getElementById('taxRate').value = document.getElementById('taxRateModify').value;
     document.getElementById('positionCost').value = document.getElementById('positionCostModify').value;
-    
+
     // Recalculate results
-    showLoadingIndicator();
+    showLoadingIndicator(recalcButton);
     setTimeout(calculateResults, 600);
   });
   // Add event listener for form submission
-  document.getElementById('simulationForm').addEventListener('submit', function(e) {
+  const simulationForm = document.getElementById('simulationForm');
+  simulationForm.addEventListener('submit', function(e) {
     e.preventDefault();
-    
+
     // Show loading indicator
-    showLoadingIndicator();
+    const submitButton = simulationForm.querySelector('button[type="submit"]');
+    showLoadingIndicator(submitButton);
     
     // Simulate processing delay (for UX)
     setTimeout(calculateResults, 600);
@@ -30,16 +33,19 @@ document.addEventListener('DOMContentLoaded', function() {
   initializeTooltips();
 });
 
-function showLoadingIndicator() {
-  const button = document.querySelector('#simulationForm button[type="submit"]');
-  button.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Obliczanie...';
-  button.disabled = true;
+let loadingButton = null;
+
+function showLoadingIndicator(targetButton) {
+  loadingButton = targetButton || document.querySelector('#simulationForm button[type="submit"]');
+  loadingButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Obliczanie...';
+  loadingButton.disabled = true;
 }
 
 function hideLoadingIndicator() {
-  const button = document.querySelector('#simulationForm button[type="submit"]');
+  const button = loadingButton || document.querySelector('#simulationForm button[type="submit"]');
   button.innerHTML = '<i class="fas fa-calculator me-2"></i>Oblicz';
   button.disabled = false;
+  loadingButton = null;
 }
 
 function calculateResults() {

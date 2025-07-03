@@ -250,3 +250,14 @@ footer a:hover {
     font-size: 0.85rem;
   }
 }
+
+/* Language selector animation */
+.lang-selector .dropdown-menu {
+  transform-origin: top;
+  animation: fadeSlide 0.3s ease forwards;
+}
+
+@keyframes fadeSlide {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

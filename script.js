@@ -7,6 +7,9 @@ const translations = {
     savingsLabel: '<i class="fas fa-wallet me-2 text-primary"></i>Kwota oszczędności (PLN):',
     taxRateLabel: '<i class="fas fa-percent me-2 text-primary"></i>Podatek od zysków (%):',
     positionCostLabel: '<i class="fas fa-money-bill-wave me-2 text-primary"></i>Koszt pozyskania/utrzymania pozycji (PLN/mies.):',
+    lockPeriodLabel: '<i class="fas fa-calendar-alt me-2 text-primary"></i>Czas lokaty (dni):',
+    capitalPercentLabel: '<i class="fas fa-chart-pie me-2 text-primary"></i>Kapitał pracujący (%):',
+    interestPercentLabel: '<i class="fas fa-clock me-2 text-primary"></i>Dni naliczania odsetek (%):',
     showPlans: 'Pokaż szczegóły planów oszczędności',
     plansHeader: 'Plany Oszczędności w Revo',
     planHeader: 'Plan',
@@ -18,10 +21,13 @@ const translations = {
     savingsLabelMod: 'Kwota oszczędności (PLN):',
     taxRateLabelMod: 'Podatek od zysków (%):',
     positionCostLabelMod: 'Koszt pozyskania/utrzymania pozycji (PLN/mies.):',
+    lockPeriodLabelMod: 'Czas lokaty (dni):',
+    capitalPercentLabelMod: 'Kapitał pracujący (%):',
+    interestPercentLabelMod: 'Dni naliczania odsetek (%):',
     recalculate: '<i class="fas fa-sync me-2"></i>Przelicz ponownie',
     resultsHeader: 'Wyniki symulacji',
     monthlyCostResultHeader: 'Koszt miesięczny (PLN)',
-    annualCostHeader: 'Koszt roczny (PLN)',
+    periodCostHeader: 'Koszt za okres (PLN)',
     rateHeader: 'Oprocentowanie (%)',
     grossHeader: 'Zysk brutto (PLN)',
     netHeader: 'Zysk netto (PLN)',
@@ -42,6 +48,9 @@ const translations = {
     savingsLabel: '<i class="fas fa-wallet me-2 text-primary"></i>Savings amount (PLN):',
     taxRateLabel: '<i class="fas fa-percent me-2 text-primary"></i>Tax on gains (%):',
     positionCostLabel: '<i class="fas fa-money-bill-wave me-2 text-primary"></i>Position cost (PLN/month):',
+    lockPeriodLabel: '<i class="fas fa-calendar-alt me-2 text-primary"></i>Lock duration (days):',
+    capitalPercentLabel: '<i class="fas fa-chart-pie me-2 text-primary"></i>Working capital (%):',
+    interestPercentLabel: '<i class="fas fa-clock me-2 text-primary"></i>Interest days (%):',
     showPlans: 'Show savings plan details',
     plansHeader: 'Revo Savings Plans',
     planHeader: 'Plan',
@@ -53,10 +62,13 @@ const translations = {
     savingsLabelMod: 'Savings amount (PLN):',
     taxRateLabelMod: 'Tax on gains (%):',
     positionCostLabelMod: 'Position cost (PLN/month):',
+    lockPeriodLabelMod: 'Lock duration (days):',
+    capitalPercentLabelMod: 'Working capital (%):',
+    interestPercentLabelMod: 'Interest days (%):',
     recalculate: '<i class="fas fa-sync me-2"></i>Recalculate',
     resultsHeader: 'Simulation Results',
     monthlyCostResultHeader: 'Monthly cost (PLN)',
-    annualCostHeader: 'Annual cost (PLN)',
+    periodCostHeader: 'Cost for period (PLN)',
     rateHeader: 'Rate (%)',
     grossHeader: 'Gross interest (PLN)',
     netHeader: 'Net interest (PLN)',
@@ -97,6 +109,9 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('savingsAmount').value = document.getElementById('savingsAmountModify').value;
     document.getElementById('taxRate').value = document.getElementById('taxRateModify').value;
     document.getElementById('positionCost').value = document.getElementById('positionCostModify').value;
+    document.getElementById('lockPeriod').value = document.getElementById('lockPeriodModify').value;
+    document.getElementById('capitalPercent').value = document.getElementById('capitalPercentModify').value;
+    document.getElementById('interestPercent').value = document.getElementById('interestPercentModify').value;
 
     // Recalculate results
     showLoadingIndicator(recalcButton);
@@ -159,6 +174,9 @@ function calculateResults() {
   const savings = parseFloat(document.getElementById('savingsAmount').value);
   const taxRate = parseFloat(document.getElementById('taxRate').value);
   const positionCost = parseFloat(document.getElementById('positionCost').value); // New field
+  const lockPeriod = parseFloat(document.getElementById('lockPeriod').value);
+  const capitalPercent = parseFloat(document.getElementById('capitalPercent').value) / 100;
+  const interestPercent = parseFloat(document.getElementById('interestPercent').value) / 100;
 
   // Pobierz dane dla poszczególnych planów
   const plans = [
@@ -173,16 +191,16 @@ function calculateResults() {
 
   // Obliczenia dla każdego planu
   plans.forEach(function(plan) {
-    const totalMonthlyCost = plan.cost + positionCost; // Now includes position cost
-    const annualCost = totalMonthlyCost * 12;
-    const grossInterest = savings * (plan.rate / 100);
+    const totalMonthlyCost = plan.cost + positionCost; // includes position cost
+    const periodCost = totalMonthlyCost * (lockPeriod / 30);
+    const grossInterest = savings * capitalPercent * (plan.rate / 100) * (lockPeriod / 365) * interestPercent;
     const netInterest = grossInterest * (1 - taxRate / 100);
-    const profitAfterCost = netInterest - annualCost;
+    const profitAfterCost = netInterest - periodCost;
 
     results.push({
       plan: plan.planName,
       monthlyCost: totalMonthlyCost.toFixed(2),
-      annualCost: annualCost.toFixed(2),
+      periodCost: periodCost.toFixed(2),
       rate: plan.rate.toFixed(2),
       grossInterest: grossInterest.toFixed(2),
       netInterest: netInterest.toFixed(2),
@@ -214,6 +232,9 @@ function calculateResults() {
   document.getElementById('savingsAmountModify').value = document.getElementById('savingsAmount').value;
   document.getElementById('taxRateModify').value = document.getElementById('taxRate').value;
   document.getElementById('positionCostModify').value = document.getElementById('positionCost').value;
+  document.getElementById('lockPeriodModify').value = document.getElementById('lockPeriod').value;
+  document.getElementById('capitalPercentModify').value = document.getElementById('capitalPercent').value;
+  document.getElementById('interestPercentModify').value = document.getElementById('interestPercent').value;
 }
 
 function populateResultsTable(results, bestPlan) {
@@ -236,7 +257,7 @@ function populateResultsTable(results, bestPlan) {
     row.innerHTML = `
       <td class="fw-medium">${r.plan}</td>
       <td>${r.monthlyCost} PLN</td>
-      <td>${r.annualCost} PLN</td>
+      <td>${r.periodCost} PLN</td>
       <td class="rate-cell">${r.rate}%</td>
       <td>${r.grossInterest} PLN</td>
       <td>${r.netInterest} PLN</td>

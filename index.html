@@ -65,6 +65,33 @@
           <input type="number" class="form-control" id="positionCost" value="0" step="0.01" required>
         </div>
       </div>
+
+      <div class="mb-4 row">
+        <label for="lockPeriod" class="col-sm-4 col-form-label" data-i18n="lockPeriodLabel">
+          <i class="fas fa-calendar-alt me-2 text-primary"></i>Czas lokaty (dni):
+        </label>
+        <div class="col-sm-8">
+          <input type="number" class="form-control" id="lockPeriod" value="365" min="30" max="1095" required>
+        </div>
+      </div>
+
+      <div class="mb-4 row">
+        <label for="capitalPercent" class="col-sm-4 col-form-label" data-i18n="capitalPercentLabel">
+          <i class="fas fa-chart-pie me-2 text-primary"></i>Kapitał pracujący (%):
+        </label>
+        <div class="col-sm-8">
+          <input type="number" class="form-control" id="capitalPercent" value="100" step="0.1" min="0" max="100" required>
+        </div>
+      </div>
+
+      <div class="mb-4 row">
+        <label for="interestPercent" class="col-sm-4 col-form-label" data-i18n="interestPercentLabel">
+          <i class="fas fa-clock me-2 text-primary"></i>Dni naliczania odsetek (%):
+        </label>
+        <div class="col-sm-8">
+          <input type="number" class="form-control" id="interestPercent" value="100" step="0.1" min="0" max="100" required>
+        </div>
+      </div>
       
       <!-- Collapsible Panel for Detailed Plans -->
       <div class="mb-4 text-center">
@@ -173,9 +200,28 @@
         <div class="mb-3 row">
           <label for="positionCostModify" class="col-sm-4 col-form-label" data-i18n="positionCostLabelMod">Koszt pozyskania/utrzymania pozycji (PLN/mies.):</label>
           <div class="col-sm-8">
-            <input type="number" class="form-control" id="positionCostModify" value="0" step="0.01">
-          </div>
+          <input type="number" class="form-control" id="positionCostModify" value="0" step="0.01">
         </div>
+      </div>
+
+      <div class="mb-3 row">
+        <label for="lockPeriodModify" class="col-sm-4 col-form-label" data-i18n="lockPeriodLabelMod">Czas lokaty (dni):</label>
+        <div class="col-sm-8">
+          <input type="number" class="form-control" id="lockPeriodModify" value="365" min="30" max="1095">
+        </div>
+      </div>
+      <div class="mb-3 row">
+        <label for="capitalPercentModify" class="col-sm-4 col-form-label" data-i18n="capitalPercentLabelMod">Kapitał pracujący (%):</label>
+        <div class="col-sm-8">
+          <input type="number" class="form-control" id="capitalPercentModify" value="100" step="0.1" min="0" max="100">
+        </div>
+      </div>
+      <div class="mb-3 row">
+        <label for="interestPercentModify" class="col-sm-4 col-form-label" data-i18n="interestPercentLabelMod">Dni naliczania odsetek (%):</label>
+        <div class="col-sm-8">
+          <input type="number" class="form-control" id="interestPercentModify" value="100" step="0.1" min="0" max="100">
+        </div>
+      </div>
         <div class="text-center">
           <button id="recalculateBtn" class="btn btn-primary" data-i18n="recalculate">
             <i class="fas fa-sync me-2"></i>Przelicz ponownie
@@ -204,7 +250,7 @@
               <tr>
                 <th data-i18n="planHeader">Plan</th>
                 <th data-i18n="monthlyCostResultHeader">Koszt miesięczny (PLN)</th>
-                <th data-i18n="annualCostHeader">Koszt roczny (PLN)</th>
+                <th data-i18n="periodCostHeader">Koszt za okres (PLN)</th>
                 <th data-i18n="rateHeader">Oprocentowanie (%)</th>
                 <th data-i18n="grossHeader">Zysk brutto (PLN)</th>
                 <th data-i18n="netHeader">Zysk netto (PLN)</th>

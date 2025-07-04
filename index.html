@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
-  <title>Symulacja Zysków z Oszczędności | Revolut</title>
+  <title data-i18n="pageTitle">Symulacja Zysków z Oszczędności | Revolut</title>
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Font Awesome -->
@@ -17,15 +17,22 @@
 
 <body>
   <div class="container">
+    <div class="lang-selector dropdown text-end mb-2">
+      <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="langDropdown" data-bs-toggle="dropdown" aria-expanded="false">PL</button>
+      <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="langDropdown">
+        <li><a class="dropdown-item lang-option" data-lang="pl" href="#">Polski</a></li>
+        <li><a class="dropdown-item lang-option" data-lang="en" href="#">English</a></li>
+      </ul>
+    </div>
     <h1 class="mb-4 text-center">
-      <i class="fas fa-chart-line me-2"></i>Symulacja Zysków z Oszczędności
+      <i class="fas fa-chart-line me-2"></i><span data-i18n="heading">Symulacja Zysków z Oszczędności</span>
     </h1>
     
 <!-- Description at the top -->
 <div class="mb-4 text-center">
-  <p class="lead">
-    Ten kalkulator symuluje zyski z oszczędności w Revo Savings, gdzie odsetki naliczane są codziennie. 
-    Wprowadź kwotę oszczędności, stawkę podatku oraz koszt utrzymania pozycji (np. koszt pozyczki), aby zobaczyć symulację. 
+  <p class="lead" data-i18n="description">
+    Ten kalkulator symuluje zyski z oszczędności w Revo Savings, gdzie odsetki naliczane są codziennie.
+    Wprowadź kwotę oszczędności, stawkę podatku oraz koszt utrzymania pozycji (np. koszt pozyczki), aby zobaczyć symulację.
     <br>Domyślne ustawienia odpowiadają ofercie Revo z 1-dniowym naliczaniem odsetek.
   </p>
 </div>
@@ -35,7 +42,7 @@
   <div class="card-body">
     <form id="simulationForm">
       <div class="mb-4 row">
-        <label for="savingsAmount" class="col-sm-4 col-form-label">
+        <label for="savingsAmount" class="col-sm-4 col-form-label" data-i18n="savingsLabel">
           <i class="fas fa-wallet me-2 text-primary"></i>Kwota oszczędności (PLN):
         </label>
         <div class="col-sm-8">
@@ -43,7 +50,7 @@
         </div>
       </div>
       <div class="mb-4 row">
-        <label for="taxRate" class="col-sm-4 col-form-label">
+        <label for="taxRate" class="col-sm-4 col-form-label" data-i18n="taxRateLabel">
           <i class="fas fa-percent me-2 text-primary"></i>Podatek od zysków (%):
         </label>
         <div class="col-sm-8">
@@ -51,7 +58,7 @@
         </div>
       </div>
       <div class="mb-4 row">
-        <label for="positionCost" class="col-sm-4 col-form-label">
+        <label for="positionCost" class="col-sm-4 col-form-label" data-i18n="positionCostLabel">
           <i class="fas fa-money-bill-wave me-2 text-primary"></i>Koszt pozyskania/utrzymania pozycji (PLN/mies.):
         </label>
         <div class="col-sm-8">
@@ -61,20 +68,20 @@
       
       <!-- Collapsible Panel for Detailed Plans -->
       <div class="mb-4 text-center">
-        <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#planDetails" aria-expanded="false" aria-controls="planDetails">
+        <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#planDetails" aria-expanded="false" aria-controls="planDetails" data-i18n="showPlans">
           Pokaż szczegóły planów oszczędności
         </button>
       </div>
       <div class="collapse" id="planDetails">
         <div class="card card-body">
-          <h5 class="mb-3">Plany Oszczędności w Revo</h5>
+          <h5 class="mb-3" data-i18n="plansHeader">Plany Oszczędności w Revo</h5>
           <div class="table-responsive">
             <table class="table table-bordered plan-table">
               <thead class="table-light">
                 <tr>
-                  <th>Plan</th>
-                  <th>Miesięczny koszt (PLN)</th>
-                  <th>Oprocentowanie roczne (%)</th>
+                  <th data-i18n="planHeader">Plan</th>
+                  <th data-i18n="monthlyCostHeader">Miesięczny koszt (PLN)</th>
+                  <th data-i18n="annualRateHeader">Oprocentowanie roczne (%)</th>
                 </tr>
               </thead>
               <tbody>
@@ -131,7 +138,7 @@
       
       <!-- Oblicz Button -->
       <div class="text-center mt-4">
-        <button type="submit" class="btn btn-primary">
+        <button type="submit" class="btn btn-primary" data-i18n="calcButton">
           <i class="fas fa-calculator me-2"></i>Oblicz
         </button>
       </div>
@@ -145,32 +152,32 @@
 <div class="accordion mt-4" id="modifyAccordion">
   <div class="accordion-item">
     <h2 class="accordion-header" id="headingModify">
-      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseModify" aria-expanded="false" aria-controls="collapseModify">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseModify" aria-expanded="false" aria-controls="collapseModify" data-i18n="modifyParams">
         Modyfikuj parametry symulacji
       </button>
     </h2>
     <div id="collapseModify" class="accordion-collapse collapse" aria-labelledby="headingModify" data-bs-parent="#modifyAccordion">
       <div class="accordion-body">
         <div class="mb-3 row">
-          <label for="savingsAmountModify" class="col-sm-4 col-form-label">Kwota oszczędności (PLN):</label>
+          <label for="savingsAmountModify" class="col-sm-4 col-form-label" data-i18n="savingsLabelMod">Kwota oszczędności (PLN):</label>
           <div class="col-sm-8">
             <input type="number" class="form-control" id="savingsAmountModify" placeholder="np. 50000" value="50000">
           </div>
         </div>
         <div class="mb-3 row">
-          <label for="taxRateModify" class="col-sm-4 col-form-label">Podatek od zysków (%):</label>
+          <label for="taxRateModify" class="col-sm-4 col-form-label" data-i18n="taxRateLabelMod">Podatek od zysków (%):</label>
           <div class="col-sm-8">
             <input type="number" class="form-control" id="taxRateModify" value="19" step="0.1">
           </div>
         </div>
         <div class="mb-3 row">
-          <label for="positionCostModify" class="col-sm-4 col-form-label">Koszt pozyskania/utrzymania pozycji (PLN/mies.):</label>
+          <label for="positionCostModify" class="col-sm-4 col-form-label" data-i18n="positionCostLabelMod">Koszt pozyskania/utrzymania pozycji (PLN/mies.):</label>
           <div class="col-sm-8">
             <input type="number" class="form-control" id="positionCostModify" value="0" step="0.01">
           </div>
         </div>
         <div class="text-center">
-          <button id="recalculateBtn" class="btn btn-primary">
+          <button id="recalculateBtn" class="btn btn-primary" data-i18n="recalculate">
             <i class="fas fa-sync me-2"></i>Przelicz ponownie
           </button>
         </div>
@@ -181,7 +188,7 @@
 
 
       <div class="card-body">
-        <h3 class="mb-3 text-center">Wyniki symulacji</h3>
+        <h3 class="mb-3 text-center" data-i18n="resultsHeader">Wyniki symulacji</h3>
         <div class="mb-4">
           <p id="bestPlan" class="fs-5"></p>
         </div>
@@ -195,13 +202,13 @@
           <table class="table table-bordered result-table">
             <thead class="table-light">
               <tr>
-                <th>Plan</th>
-                <th>Koszt miesięczny (PLN)</th>
-                <th>Koszt roczny (PLN)</th>
-                <th>Oprocentowanie (%)</th>
-                <th>Zysk brutto (PLN)</th>
-                <th>Zysk netto (PLN)</th>
-                <th>Zysk końcowy (PLN)</th>
+                <th data-i18n="planHeader">Plan</th>
+                <th data-i18n="monthlyCostResultHeader">Koszt miesięczny (PLN)</th>
+                <th data-i18n="annualCostHeader">Koszt roczny (PLN)</th>
+                <th data-i18n="rateHeader">Oprocentowanie (%)</th>
+                <th data-i18n="grossHeader">Zysk brutto (PLN)</th>
+                <th data-i18n="netHeader">Zysk netto (PLN)</th>
+                <th data-i18n="profitHeader">Zysk końcowy (PLN)</th>
               </tr>
             </thead>
             <tbody id="resultTableBody">
@@ -209,7 +216,7 @@
           </table>
         </div>
         <div class="text-center mt-4">
-          <button id="editFormBtn" class="btn btn-secondary">
+          <button id="editFormBtn" class="btn btn-secondary" data-i18n="editData">
             <i class="fas fa-edit me-2"></i>Edytuj dane
           </button>
         </div>
@@ -219,12 +226,12 @@
     <!-- Footer with official comparison link -->
     <footer class="mt-4 text-center">
       <p>
-        <i class="fas fa-link me-1"></i>Porównaj plany: 
-        <a href="https://www.revolut.com/pl-PL/our-pricing-plans/" target="_blank">
+        <span data-i18n="comparePlans"><i class="fas fa-link me-1"></i>Porównaj plany:</span>
+        <a href="https://www.revolut.com/pl-PL/our-pricing-plans/" target="_blank" data-i18n="officialComparison">
           Oficjalne porównanie <i class="fas fa-external-link-alt ms-1 fa-xs"></i>
         </a>
       </p>
-      <small class="text-muted">© 2025 Kalkulator Revo Savings</small>
+      <small class="text-muted" data-i18n="footerNote">© 2025 Kalkulator Revo Savings</small>
     </footer>
   </div>
   

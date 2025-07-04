@@ -136,8 +136,15 @@ label {
 
 .table-responsive {
   border-radius: 10px;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Ensure result table can scroll horizontally on small screens */
+.result-table {
+  min-width: 720px;
 }
 
 /* Best Plan Styling */
@@ -249,4 +256,18 @@ footer a:hover {
     padding: 10px 8px;
     font-size: 0.85rem;
   }
+}
+
+/* Language selector animation */
+.lang-selector .dropdown-menu {
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  transform-origin: top;
+  transition: opacity 0.2s ease, max-height 0.2s ease;
+}
+
+.lang-selector .dropdown-menu.show {
+  opacity: 1;
+  max-height: 200px; /* Enough to show items */
 }

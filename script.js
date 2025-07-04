@@ -1,4 +1,95 @@
 
+const translations = {
+  pl: {
+    pageTitle: 'Symulacja Zysków z Oszczędności | Revolut',
+    heading: 'Symulacja Zysków z Oszczędności',
+    description: 'Ten kalkulator symuluje zyski z oszczędności w Revo Savings, gdzie odsetki naliczane są codziennie.<br>Wprowadź kwotę oszczędności, stawkę podatku oraz koszt utrzymania pozycji (np. koszt pozyczki), aby zobaczyć symulację.<br>Domyślne ustawienia odpowiadają ofercie Revo z 1-dniowym naliczaniem odsetek.',
+    savingsLabel: '<i class="fas fa-wallet me-2 text-primary"></i>Kwota oszczędności (PLN):',
+    taxRateLabel: '<i class="fas fa-percent me-2 text-primary"></i>Podatek od zysków (%):',
+    positionCostLabel: '<i class="fas fa-money-bill-wave me-2 text-primary"></i>Koszt pozyskania/utrzymania pozycji (PLN/mies.):',
+    showPlans: 'Pokaż szczegóły planów oszczędności',
+    plansHeader: 'Plany Oszczędności w Revo',
+    planHeader: 'Plan',
+    monthlyCostHeader: 'Miesięczny koszt (PLN)',
+    annualRateHeader: 'Oprocentowanie roczne (%)',
+    calcButton: '<i class="fas fa-calculator me-2"></i>Oblicz',
+    calcLoading: '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Obliczanie...',
+    modifyParams: 'Modyfikuj parametry symulacji',
+    savingsLabelMod: 'Kwota oszczędności (PLN):',
+    taxRateLabelMod: 'Podatek od zysków (%):',
+    positionCostLabelMod: 'Koszt pozyskania/utrzymania pozycji (PLN/mies.):',
+    recalculate: '<i class="fas fa-sync me-2"></i>Przelicz ponownie',
+    resultsHeader: 'Wyniki symulacji',
+    monthlyCostResultHeader: 'Koszt miesięczny (PLN)',
+    annualCostHeader: 'Koszt roczny (PLN)',
+    rateHeader: 'Oprocentowanie (%)',
+    grossHeader: 'Zysk brutto (PLN)',
+    netHeader: 'Zysk netto (PLN)',
+    profitHeader: 'Zysk końcowy (PLN)',
+    editData: '<i class="fas fa-edit me-2"></i>Edytuj dane',
+    comparePlans: '<i class="fas fa-link me-1"></i>Porównaj plany:',
+    officialComparison: 'Oficjalne porównanie <i class="fas fa-external-link-alt ms-1 fa-xs"></i>',
+    footerNote: '© 2025 Kalkulator Revo Savings',
+    chartLabel: 'Zysk końcowy (PLN)',
+    interestRate: 'Oprocentowanie',
+    bestPlan: (plan, profit) => `<i class="fas fa-trophy me-2"></i>Najlepszy plan: <strong>${plan}</strong> (Zysk końcowy: <strong>${profit} PLN</strong>)`,
+    allLosses: (plan, loss) => `<i class="fas fa-exclamation-triangle me-2"></i>Uwaga: Wszystkie plany generują straty. Najlepsza opcja: <strong>${plan}</strong> (Strata: <strong>${loss} PLN</strong>)`
+  },
+  en: {
+    pageTitle: 'Savings Profit Simulation | Revolut',
+    heading: 'Savings Profit Simulation',
+    description: 'This calculator simulates profits in Revo Savings where interest is calculated daily.<br>Enter the savings amount, tax rate and position cost (e.g. loan cost) to see the simulation.<br>Default settings reflect the Revo offer with daily interest.',
+    savingsLabel: '<i class="fas fa-wallet me-2 text-primary"></i>Savings amount (PLN):',
+    taxRateLabel: '<i class="fas fa-percent me-2 text-primary"></i>Tax on gains (%):',
+    positionCostLabel: '<i class="fas fa-money-bill-wave me-2 text-primary"></i>Position cost (PLN/month):',
+    showPlans: 'Show savings plan details',
+    plansHeader: 'Revo Savings Plans',
+    planHeader: 'Plan',
+    monthlyCostHeader: 'Monthly cost (PLN)',
+    annualRateHeader: 'Annual rate (%)',
+    calcButton: '<i class="fas fa-calculator me-2"></i>Calculate',
+    calcLoading: '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Calculating...',
+    modifyParams: 'Modify simulation parameters',
+    savingsLabelMod: 'Savings amount (PLN):',
+    taxRateLabelMod: 'Tax on gains (%):',
+    positionCostLabelMod: 'Position cost (PLN/month):',
+    recalculate: '<i class="fas fa-sync me-2"></i>Recalculate',
+    resultsHeader: 'Simulation Results',
+    monthlyCostResultHeader: 'Monthly cost (PLN)',
+    annualCostHeader: 'Annual cost (PLN)',
+    rateHeader: 'Rate (%)',
+    grossHeader: 'Gross interest (PLN)',
+    netHeader: 'Net interest (PLN)',
+    profitHeader: 'Final profit (PLN)',
+    editData: '<i class="fas fa-edit me-2"></i>Edit data',
+    comparePlans: '<i class="fas fa-link me-1"></i>Compare plans:',
+    officialComparison: 'Official comparison <i class="fas fa-external-link-alt ms-1 fa-xs"></i>',
+    footerNote: '© 2025 Revo Savings Calculator',
+    chartLabel: 'Final profit (PLN)',
+    interestRate: 'Interest rate',
+    bestPlan: (plan, profit) => `<i class="fas fa-trophy me-2"></i>Best plan: <strong>${plan}</strong> (Final profit: <strong>${profit} PLN</strong>)`,
+    allLosses: (plan, loss) => `<i class="fas fa-exclamation-triangle me-2"></i>Warning: All plans yield losses. Best option: <strong>${plan}</strong> (Loss: <strong>${loss} PLN</strong>)`
+  }
+};
+
+let currentLang = localStorage.getItem('lang') || 'pl';
+
+function applyTranslations() {
+  const t = translations[currentLang];
+  document.documentElement.lang = currentLang;
+  document.querySelector('[data-i18n="pageTitle"]').innerHTML = t.pageTitle;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (!t[key]) return;
+    if (el.tagName === 'INPUT' && el.type !== 'submit') {
+      el.placeholder = t[key];
+    } else {
+      el.innerHTML = t[key];
+    }
+  });
+  document.getElementById('langDropdown').textContent = currentLang.toUpperCase();
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   const recalcButton = document.getElementById('recalculateBtn');
   recalcButton.addEventListener('click', function() {
@@ -31,19 +122,34 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Initialize any tooltips or popovers if needed
   initializeTooltips();
+
+  // Language selector
+  document.querySelectorAll('.lang-option').forEach(function(el) {
+    el.addEventListener('click', function(e) {
+      e.preventDefault();
+      currentLang = el.getAttribute('data-lang');
+      localStorage.setItem('lang', currentLang);
+      applyTranslations();
+      if (!document.getElementById('resultSection').classList.contains('d-none')) {
+        calculateResults();
+      }
+    });
+  });
+
+  applyTranslations();
 });
 
 let loadingButton = null;
 
 function showLoadingIndicator(targetButton) {
   loadingButton = targetButton || document.querySelector('#simulationForm button[type="submit"]');
-  loadingButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Obliczanie...';
+  loadingButton.innerHTML = translations[currentLang].calcLoading;
   loadingButton.disabled = true;
 }
 
 function hideLoadingIndicator() {
   const button = loadingButton || document.querySelector('#simulationForm button[type="submit"]');
-  button.innerHTML = '<i class="fas fa-calculator me-2"></i>Oblicz';
+  button.innerHTML = translations[currentLang].calcButton;
   button.disabled = false;
   loadingButton = null;
 }
@@ -146,8 +252,8 @@ function populateResultsTable(results, bestPlan) {
     '<i class="fas fa-exclamation-triangle me-2"></i>';
   
   const bestPlanMessage = profitAmount >= 0 ?
-    `${profitIcon}Najlepszy plan: <strong>${bestPlan.plan}</strong> (Zysk końcowy: <strong>${bestPlan.profitAfterCost} PLN</strong>)` :
-    `${profitIcon}Uwaga: Wszystkie plany generują straty. Najlepsza opcja: <strong>${bestPlan.plan}</strong> (Strata: <strong>${bestPlan.profitAfterCost} PLN</strong>)`;
+    translations[currentLang].bestPlan(bestPlan.plan, bestPlan.profitAfterCost) :
+    translations[currentLang].allLosses(bestPlan.plan, bestPlan.profitAfterCost);
   
   document.getElementById('bestPlan').innerHTML = bestPlanMessage;
 }
@@ -180,7 +286,7 @@ function createProfitChart(results) {
     data: {
       labels: labels,
       datasets: [{
-        label: 'Zysk końcowy (PLN)',
+        label: translations[currentLang].chartLabel,
         data: profitData,
         backgroundColor: backgroundColors,
         borderColor: borderColors,
@@ -201,7 +307,7 @@ function createProfitChart(results) {
           callbacks: {
             afterLabel: function(context) {
               const idx = context.dataIndex;
-              return `Oprocentowanie: ${interestRates[idx]}%`;
+              return `${translations[currentLang].interestRate}: ${interestRates[idx]}%`;
             }
           }
         }

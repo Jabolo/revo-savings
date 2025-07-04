@@ -76,20 +76,30 @@
       </div>
 
       <div class="mb-4 row">
-        <label for="capitalPercent" class="col-sm-4 col-form-label" data-i18n="capitalPercentLabel">
-          <i class="fas fa-chart-pie me-2 text-primary"></i>Kapitał pracujący (%):
+        <label for="capitalInput" class="col-sm-4 col-form-label" data-i18n="capitalPercentLabel">
+          <i class="fas fa-chart-pie me-2 text-primary"></i>Kapitał pracujący:
         </label>
         <div class="col-sm-8">
-          <input type="number" class="form-control" id="capitalPercent" value="100" step="0.1" min="0" max="100" required>
+          <div class="d-flex align-items-center gap-2">
+            <input type="number" class="form-control" id="capitalInput" value="100" step="0.1">
+            <input type="range" class="form-range" id="capitalRange" min="0" max="100" step="0.1">
+            <select id="capitalMode" class="form-select w-auto">
+              <option value="percent">%</option>
+              <option value="days">dni</option>
+            </select>
+          </div>
         </div>
       </div>
 
       <div class="mb-4 row">
-        <label for="interestPercent" class="col-sm-4 col-form-label" data-i18n="interestPercentLabel">
+        <label for="interestInput" class="col-sm-4 col-form-label" data-i18n="interestPercentLabel">
           <i class="fas fa-clock me-2 text-primary"></i>Dni naliczania odsetek (%):
         </label>
         <div class="col-sm-8">
-          <input type="number" class="form-control" id="interestPercent" value="100" step="0.1" min="0" max="100" required>
+          <div class="d-flex align-items-center gap-2">
+            <input type="number" class="form-control" id="interestInput" value="100" step="0.1">
+            <input type="range" class="form-range" id="interestRange" min="0" max="100" step="0.1">
+          </div>
         </div>
       </div>
       
@@ -211,15 +221,25 @@
         </div>
       </div>
       <div class="mb-3 row">
-        <label for="capitalPercentModify" class="col-sm-4 col-form-label" data-i18n="capitalPercentLabelMod">Kapitał pracujący (%):</label>
+        <label for="capitalModifyInput" class="col-sm-4 col-form-label" data-i18n="capitalPercentLabelMod">Kapitał pracujący:</label>
         <div class="col-sm-8">
-          <input type="number" class="form-control" id="capitalPercentModify" value="100" step="0.1" min="0" max="100">
+          <div class="d-flex align-items-center gap-2">
+            <input type="number" class="form-control" id="capitalModifyInput" value="100" step="0.1">
+            <input type="range" class="form-range" id="capitalModifyRange" min="0" max="100" step="0.1">
+            <select id="capitalModifyMode" class="form-select w-auto">
+              <option value="percent">%</option>
+              <option value="days">dni</option>
+            </select>
+          </div>
         </div>
       </div>
       <div class="mb-3 row">
-        <label for="interestPercentModify" class="col-sm-4 col-form-label" data-i18n="interestPercentLabelMod">Dni naliczania odsetek (%):</label>
+        <label for="interestModifyInput" class="col-sm-4 col-form-label" data-i18n="interestPercentLabelMod">Dni naliczania odsetek (%):</label>
         <div class="col-sm-8">
-          <input type="number" class="form-control" id="interestPercentModify" value="100" step="0.1" min="0" max="100">
+          <div class="d-flex align-items-center gap-2">
+            <input type="number" class="form-control" id="interestModifyInput" value="100" step="0.1">
+            <input type="range" class="form-range" id="interestModifyRange" min="0" max="100" step="0.1">
+          </div>
         </div>
       </div>
         <div class="text-center">

@@ -8,7 +8,7 @@ const translations = {
     taxRateLabel: '<i class="fas fa-percent me-2 text-primary"></i>Podatek od zysków (%):',
     positionCostLabel: '<i class="fas fa-money-bill-wave me-2 text-primary"></i>Koszt pozyskania/utrzymania pozycji (PLN/mies.):',
     lockPeriodLabel: '<i class="fas fa-calendar-alt me-2 text-primary"></i>Czas lokaty (dni):',
-    capitalPercentLabel: '<i class="fas fa-chart-pie me-2 text-primary"></i>Kapitał pracujący (%):',
+    capitalPercentLabel: '<i class="fas fa-chart-pie me-2 text-primary"></i>Kapitał pracujący:',
     interestPercentLabel: '<i class="fas fa-clock me-2 text-primary"></i>Dni naliczania odsetek (%):',
     showPlans: 'Pokaż szczegóły planów oszczędności',
     plansHeader: 'Plany Oszczędności w Revo',
@@ -22,7 +22,7 @@ const translations = {
     taxRateLabelMod: 'Podatek od zysków (%):',
     positionCostLabelMod: 'Koszt pozyskania/utrzymania pozycji (PLN/mies.):',
     lockPeriodLabelMod: 'Czas lokaty (dni):',
-    capitalPercentLabelMod: 'Kapitał pracujący (%):',
+    capitalPercentLabelMod: 'Kapitał pracujący:',
     interestPercentLabelMod: 'Dni naliczania odsetek (%):',
     recalculate: '<i class="fas fa-sync me-2"></i>Przelicz ponownie',
     resultsHeader: 'Wyniki symulacji',
@@ -49,7 +49,7 @@ const translations = {
     taxRateLabel: '<i class="fas fa-percent me-2 text-primary"></i>Tax on gains (%):',
     positionCostLabel: '<i class="fas fa-money-bill-wave me-2 text-primary"></i>Position cost (PLN/month):',
     lockPeriodLabel: '<i class="fas fa-calendar-alt me-2 text-primary"></i>Lock duration (days):',
-    capitalPercentLabel: '<i class="fas fa-chart-pie me-2 text-primary"></i>Working capital (%):',
+    capitalPercentLabel: '<i class="fas fa-chart-pie me-2 text-primary"></i>Working capital:',
     interestPercentLabel: '<i class="fas fa-clock me-2 text-primary"></i>Interest days (%):',
     showPlans: 'Show savings plan details',
     plansHeader: 'Revo Savings Plans',
@@ -63,7 +63,7 @@ const translations = {
     taxRateLabelMod: 'Tax on gains (%):',
     positionCostLabelMod: 'Position cost (PLN/month):',
     lockPeriodLabelMod: 'Lock duration (days):',
-    capitalPercentLabelMod: 'Working capital (%):',
+    capitalPercentLabelMod: 'Working capital:',
     interestPercentLabelMod: 'Interest days (%):',
     recalculate: '<i class="fas fa-sync me-2"></i>Recalculate',
     resultsHeader: 'Simulation Results',
@@ -105,15 +105,7 @@ function applyTranslations() {
 document.addEventListener('DOMContentLoaded', function() {
   const recalcButton = document.getElementById('recalculateBtn');
   recalcButton.addEventListener('click', function() {
-    // Update main form fields from the modify panel
-    document.getElementById('savingsAmount').value = document.getElementById('savingsAmountModify').value;
-    document.getElementById('taxRate').value = document.getElementById('taxRateModify').value;
-    document.getElementById('positionCost').value = document.getElementById('positionCostModify').value;
-    document.getElementById('lockPeriod').value = document.getElementById('lockPeriodModify').value;
-    document.getElementById('capitalPercent').value = document.getElementById('capitalPercentModify').value;
-    document.getElementById('interestPercent').value = document.getElementById('interestPercentModify').value;
-
-    // Recalculate results
+    syncModifyToMain();
     showLoadingIndicator(recalcButton);
     setTimeout(calculateResults, 600);
   });
@@ -133,6 +125,32 @@ document.addEventListener('DOMContentLoaded', function() {
   // Add event listener for edit button
   document.getElementById('editFormBtn').addEventListener('click', function() {
     showSimulationForm();
+  });
+
+  // Sync numeric inputs with range sliders
+  setupRangeSync('capitalInput', 'capitalRange');
+  setupRangeSync('interestInput', 'interestRange');
+  setupRangeSync('capitalModifyInput', 'capitalModifyRange');
+  setupRangeSync('interestModifyInput', 'interestModifyRange');
+  updateCapitalRange('capitalInput', 'capitalRange', document.getElementById('capitalMode').value);
+  updateCapitalRange('capitalModifyInput', 'capitalModifyRange', document.getElementById('capitalModifyMode').value);
+
+  // Update range settings when capital mode changes
+  document.getElementById('capitalMode').addEventListener('change', function() {
+    updateCapitalRange('capitalInput', 'capitalRange', this.value);
+    triggerAutoCalc();
+  });
+  document.getElementById('capitalModifyMode').addEventListener('change', function() {
+    updateCapitalRange('capitalModifyInput', 'capitalModifyRange', this.value);
+    triggerAutoCalc();
+  });
+
+  // Auto recalc when modify fields change
+  ['savingsAmountModify','taxRateModify','positionCostModify','lockPeriodModify','capitalModifyInput','interestModifyInput'].forEach(id => {
+    document.getElementById(id).addEventListener('input', triggerAutoCalc);
+  });
+  ['capitalModifyRange','interestModifyRange'].forEach(id => {
+    document.getElementById(id).addEventListener('input', triggerAutoCalc);
   });
   
   // Initialize any tooltips or popovers if needed
@@ -175,8 +193,10 @@ function calculateResults() {
   const taxRate = parseFloat(document.getElementById('taxRate').value);
   const positionCost = parseFloat(document.getElementById('positionCost').value); // New field
   const lockPeriod = parseFloat(document.getElementById('lockPeriod').value);
-  const capitalPercent = parseFloat(document.getElementById('capitalPercent').value) / 100;
-  const interestPercent = parseFloat(document.getElementById('interestPercent').value) / 100;
+  const capitalMode = document.getElementById('capitalMode').value;
+  const capitalValue = parseFloat(document.getElementById('capitalInput').value);
+  const capitalPercent = capitalMode === 'days' ? (capitalValue / 30) : (capitalValue / 100);
+  const interestPercent = parseFloat(document.getElementById('interestInput').value) / 100;
 
   // Pobierz dane dla poszczególnych planów
   const plans = [
@@ -233,8 +253,11 @@ function calculateResults() {
   document.getElementById('taxRateModify').value = document.getElementById('taxRate').value;
   document.getElementById('positionCostModify').value = document.getElementById('positionCost').value;
   document.getElementById('lockPeriodModify').value = document.getElementById('lockPeriod').value;
-  document.getElementById('capitalPercentModify').value = document.getElementById('capitalPercent').value;
-  document.getElementById('interestPercentModify').value = document.getElementById('interestPercent').value;
+  document.getElementById('capitalModifyInput').value = document.getElementById('capitalInput').value;
+  document.getElementById('capitalModifyMode').value = document.getElementById('capitalMode').value;
+  document.getElementById('capitalModifyRange').value = document.getElementById('capitalRange').value;
+  document.getElementById('interestModifyInput').value = document.getElementById('interestInput').value;
+  document.getElementById('interestModifyRange').value = document.getElementById('interestRange').value;
 }
 
 function populateResultsTable(results, bestPlan) {
@@ -400,4 +423,60 @@ function initializeTooltips() {
   // var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
   //   return new bootstrap.Tooltip(tooltipTriggerEl)
   // })
+}
+
+function setupRangeSync(inputId, rangeId) {
+  const input = document.getElementById(inputId);
+  const range = document.getElementById(rangeId);
+  if (!input || !range) return;
+  range.value = input.value;
+  input.addEventListener('input', () => {
+    const val = parseFloat(input.value);
+    if (!isNaN(val)) {
+      const min = parseFloat(range.min);
+      const max = parseFloat(range.max);
+      range.value = Math.min(Math.max(val, min), max);
+    }
+  });
+  range.addEventListener('input', () => {
+    input.value = range.value;
+  });
+}
+
+function updateCapitalRange(inputId, rangeId, mode) {
+  const input = document.getElementById(inputId);
+  const range = document.getElementById(rangeId);
+  if (!input || !range) return;
+  if (mode === 'days') {
+    range.min = 0;
+    range.max = 30;
+    range.step = 1;
+    input.value = ((parseFloat(input.value) || 0) / 100 * 30).toFixed(1);
+  } else {
+    range.min = 0;
+    range.max = 100;
+    range.step = 0.1;
+    input.value = ((parseFloat(input.value) || 0) / 30 * 100).toFixed(1);
+  }
+  range.value = Math.min(Math.max(parseFloat(input.value), range.min), range.max);
+}
+
+function syncModifyToMain() {
+  document.getElementById('savingsAmount').value = document.getElementById('savingsAmountModify').value;
+  document.getElementById('taxRate').value = document.getElementById('taxRateModify').value;
+  document.getElementById('positionCost').value = document.getElementById('positionCostModify').value;
+  document.getElementById('lockPeriod').value = document.getElementById('lockPeriodModify').value;
+  document.getElementById('capitalInput').value = document.getElementById('capitalModifyInput').value;
+  document.getElementById('capitalMode').value = document.getElementById('capitalModifyMode').value;
+  document.getElementById('capitalRange').value = document.getElementById('capitalModifyRange').value;
+  document.getElementById('interestInput').value = document.getElementById('interestModifyInput').value;
+  document.getElementById('interestRange').value = document.getElementById('interestModifyRange').value;
+  updateCapitalRange('capitalInput', 'capitalRange', document.getElementById('capitalMode').value);
+}
+
+function triggerAutoCalc() {
+  if (!document.getElementById('resultSection').classList.contains('d-none')) {
+    syncModifyToMain();
+    calculateResults();
+  }
 }

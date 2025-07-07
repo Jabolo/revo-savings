@@ -179,6 +179,10 @@ function hideLoadingIndicator() {
   loadingButton = null;
 }
 
+// Calculate interest compounded daily without deducting tax until the end
+// principal - starting amount
+// annualRate - yearly interest rate in percent
+// days - number of days the money is saved
 function compoundInterestDaily(principal, annualRate, days) {
   const dailyRate = annualRate / 100 / 365;
   return principal * (Math.pow(1 + dailyRate, days) - 1);
@@ -218,6 +222,7 @@ function calculateResults() {
     const grossInterest = compound
       ? compoundInterestDaily(savings, plan.rate, lockPeriod)
       : savings * (plan.rate / 100) * (lockPeriod / 365);
+    // Tax is deducted once after the entire interest is calculated
     const netInterest = grossInterest * (1 - taxRate / 100);
     const profitAfterCost = netInterest - periodCost;
 

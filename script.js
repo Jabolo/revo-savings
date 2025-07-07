@@ -32,6 +32,7 @@ const translations = {
     netHeader: 'Zysk netto (PLN)',
     profitHeader: 'Zysk końcowy (PLN)',
     editData: '<i class="fas fa-edit me-2"></i>Edytuj dane',
+    downloadCsv: '<i class="fas fa-download me-2"></i>Pobierz CSV',
     comparePlans: '<i class="fas fa-link me-1"></i>Porównaj plany:',
     officialComparison: 'Oficjalne porównanie <i class="fas fa-external-link-alt ms-1 fa-xs"></i>',
     footerNote: '© 2025 Kalkulator Revo Savings',
@@ -71,6 +72,7 @@ const translations = {
     netHeader: 'Net interest (PLN)',
     profitHeader: 'Final profit (PLN)',
     editData: '<i class="fas fa-edit me-2"></i>Edit data',
+    downloadCsv: '<i class="fas fa-download me-2"></i>Download CSV',
     comparePlans: '<i class="fas fa-link me-1"></i>Compare plans:',
     officialComparison: 'Official comparison <i class="fas fa-external-link-alt ms-1 fa-xs"></i>',
     footerNote: '© 2025 Revo Savings Calculator',
@@ -118,6 +120,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('editFormBtn').addEventListener('click', function() {
     showSimulationForm();
   });
+  document.getElementById('downloadCsv').addEventListener('click', downloadResultsCsv);
 
   // Sync numeric inputs with range sliders
   setupRangeSync('savingsAmount', 'savingsRange');
@@ -475,4 +478,28 @@ function triggerAutoCalc() {
     syncModifyToMain();
     calculateResults();
   }
+}
+
+function downloadResultsCsv() {
+  const table = document.querySelector('.result-table');
+  if (!table) return;
+  const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
+  const rows = Array.from(table.querySelectorAll('tbody tr'));
+  if (rows.length === 0) return;
+
+  let csv = headers.join(',') + '\n';
+  rows.forEach(row => {
+    const cells = Array.from(row.querySelectorAll('td')).map(td => td.textContent.trim());
+    csv += cells.join(',') + '\n';
+  });
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'results.csv';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 }

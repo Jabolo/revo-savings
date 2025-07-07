@@ -46,7 +46,10 @@
           <i class="fas fa-wallet me-2 text-primary"></i>Kwota oszczędności (PLN):
         </label>
         <div class="col-sm-8">
-          <input type="number" class="form-control" id="savingsAmount" placeholder="np. 50000" value="50000" required>
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <input type="number" class="form-control" id="savingsAmount" placeholder="np. 50000" value="50000" required>
+            <input type="range" class="form-range flex-grow-1" id="savingsRange" min="0" max="500000" step="1000">
+          </div>
         </div>
       </div>
       <div class="mb-4 row">
@@ -71,37 +74,14 @@
           <i class="fas fa-calendar-alt me-2 text-primary"></i>Czas lokaty (dni):
         </label>
         <div class="col-sm-8">
-          <input type="number" class="form-control" id="lockPeriod" value="365" min="30" max="1095" required>
-        </div>
-      </div>
-
-      <div class="mb-4 row">
-        <label for="capitalInput" class="col-sm-4 col-form-label" data-i18n="capitalPercentLabel">
-          <i class="fas fa-chart-pie me-2 text-primary"></i>Kapitał pracujący:
-        </label>
-        <div class="col-sm-8">
-          <div class="d-flex align-items-center gap-2">
-            <input type="number" class="form-control" id="capitalInput" value="100" step="0.1">
-            <input type="range" class="form-range" id="capitalRange" min="0" max="100" step="0.1">
-            <select id="capitalMode" class="form-select w-auto">
-              <option value="percent">%</option>
-              <option value="days">dni</option>
-            </select>
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <input type="number" class="form-control" id="lockPeriod" value="365" required>
+            <input type="range" class="form-range flex-grow-1" id="lockRange" min="0" max="365" step="1">
           </div>
         </div>
       </div>
 
-      <div class="mb-4 row">
-        <label for="interestInput" class="col-sm-4 col-form-label" data-i18n="interestPercentLabel">
-          <i class="fas fa-clock me-2 text-primary"></i>Dni naliczania odsetek (%):
-        </label>
-        <div class="col-sm-8">
-          <div class="d-flex align-items-center gap-2">
-            <input type="number" class="form-control" id="interestInput" value="100" step="0.1">
-            <input type="range" class="form-range" id="interestRange" min="0" max="100" step="0.1">
-          </div>
-        </div>
-      </div>
+
       
       <!-- Collapsible Panel for Detailed Plans -->
       <div class="mb-4 text-center">
@@ -198,7 +178,10 @@
         <div class="mb-3 row">
           <label for="savingsAmountModify" class="col-sm-4 col-form-label" data-i18n="savingsLabelMod">Kwota oszczędności (PLN):</label>
           <div class="col-sm-8">
-            <input type="number" class="form-control" id="savingsAmountModify" placeholder="np. 50000" value="50000">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <input type="number" class="form-control" id="savingsAmountModify" placeholder="np. 50000" value="50000">
+              <input type="range" class="form-range flex-grow-1" id="savingsModifyRange" min="0" max="500000" step="1000">
+            </div>
           </div>
         </div>
         <div class="mb-3 row">
@@ -217,31 +200,13 @@
       <div class="mb-3 row">
         <label for="lockPeriodModify" class="col-sm-4 col-form-label" data-i18n="lockPeriodLabelMod">Czas lokaty (dni):</label>
         <div class="col-sm-8">
-          <input type="number" class="form-control" id="lockPeriodModify" value="365" min="30" max="1095">
-        </div>
-      </div>
-      <div class="mb-3 row">
-        <label for="capitalModifyInput" class="col-sm-4 col-form-label" data-i18n="capitalPercentLabelMod">Kapitał pracujący:</label>
-        <div class="col-sm-8">
-          <div class="d-flex align-items-center gap-2">
-            <input type="number" class="form-control" id="capitalModifyInput" value="100" step="0.1">
-            <input type="range" class="form-range" id="capitalModifyRange" min="0" max="100" step="0.1">
-            <select id="capitalModifyMode" class="form-select w-auto">
-              <option value="percent">%</option>
-              <option value="days">dni</option>
-            </select>
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <input type="number" class="form-control" id="lockPeriodModify" value="365">
+            <input type="range" class="form-range flex-grow-1" id="lockModifyRange" min="0" max="365" step="1">
           </div>
         </div>
       </div>
-      <div class="mb-3 row">
-        <label for="interestModifyInput" class="col-sm-4 col-form-label" data-i18n="interestPercentLabelMod">Dni naliczania odsetek (%):</label>
-        <div class="col-sm-8">
-          <div class="d-flex align-items-center gap-2">
-            <input type="number" class="form-control" id="interestModifyInput" value="100" step="0.1">
-            <input type="range" class="form-range" id="interestModifyRange" min="0" max="100" step="0.1">
-          </div>
-        </div>
-      </div>
+
         <div class="text-center">
           <button id="recalculateBtn" class="btn btn-primary" data-i18n="recalculate">
             <i class="fas fa-sync me-2"></i>Przelicz ponownie

@@ -271,3 +271,10 @@ footer a:hover {
   opacity: 1;
   max-height: 200px; /* Enough to show items */
 }
+
+/* Range slider layout */
+.form-range.flex-grow-1 {
+  width: auto;
+  flex-grow: 1;
+  min-width: 120px;
+}

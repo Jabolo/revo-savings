@@ -38,7 +38,8 @@ const translations = {
     chartLabel: 'Zysk końcowy (PLN)',
     interestRate: 'Oprocentowanie',
     bestPlan: (plan, profit) => `<i class="fas fa-trophy me-2"></i>Najlepszy plan: <strong>${plan}</strong> (Zysk końcowy: <strong>${profit} PLN</strong>)`,
-    allLosses: (plan, loss) => `<i class="fas fa-exclamation-triangle me-2"></i>Uwaga: Wszystkie plany generują straty. Najlepsza opcja: <strong>${plan}</strong> (Strata: <strong>${loss} PLN</strong>)`
+    allLosses: (plan, loss) => `<i class="fas fa-exclamation-triangle me-2"></i>Uwaga: Wszystkie plany generują straty. Najlepsza opcja: <strong>${plan}</strong> (Strata: <strong>${loss} PLN</strong>)`,
+    invalidInput: 'Proszę wprowadzić poprawne liczby.'
   },
   en: {
     pageTitle: 'Savings Profit Simulation | Revolut',
@@ -77,7 +78,8 @@ const translations = {
     chartLabel: 'Final profit (PLN)',
     interestRate: 'Interest rate',
     bestPlan: (plan, profit) => `<i class="fas fa-trophy me-2"></i>Best plan: <strong>${plan}</strong> (Final profit: <strong>${profit} PLN</strong>)`,
-    allLosses: (plan, loss) => `<i class="fas fa-exclamation-triangle me-2"></i>Warning: All plans yield losses. Best option: <strong>${plan}</strong> (Loss: <strong>${loss} PLN</strong>)`
+    allLosses: (plan, loss) => `<i class="fas fa-exclamation-triangle me-2"></i>Warning: All plans yield losses. Best option: <strong>${plan}</strong> (Loss: <strong>${loss} PLN</strong>)`,
+    invalidInput: 'Please enter valid numbers.'
   }
 };
 
@@ -197,12 +199,56 @@ function updateGrossHeader() {
 }
 
 function calculateResults() {
+  // Hide previous error message
+  const errorEl = document.getElementById('inputError');
+  if (errorEl) errorEl.classList.add('d-none');
+
   // Pobierz dane wejściowe
-  const savings = parseFloat(document.getElementById('savingsAmount').value);
-  const taxRate = parseFloat(document.getElementById('taxRate').value);
-  let positionCost = parseFloat(document.getElementById('positionCost').value);
-  if (isNaN(positionCost)) positionCost = 0; // allow temporarily blank/"-" input
-  const lockPeriod = parseFloat(document.getElementById('lockPeriod').value);
+  const savingsInput = document.getElementById('savingsAmount');
+  const taxRateInput = document.getElementById('taxRate');
+  const positionCostInput = document.getElementById('positionCost');
+  const lockPeriodInput = document.getElementById('lockPeriod');
+
+  let savings = parseFloat(savingsInput.value);
+  let taxRate = parseFloat(taxRateInput.value);
+  let positionCost = parseFloat(positionCostInput.value);
+  let lockPeriod = parseFloat(lockPeriodInput.value);
+
+  // Replace NaN with sensible defaults
+  if (isNaN(savings)) savings = 0;
+  if (isNaN(taxRate)) taxRate = 0;
+  if (isNaN(positionCost)) positionCost = 0; // allow temporarily blank "-" input
+  if (isNaN(lockPeriod)) lockPeriod = 0;
+
+  // Basic validation & user feedback
+  let invalid = false;
+  [savingsInput, taxRateInput, positionCostInput, lockPeriodInput].forEach(el => el.classList.remove('is-invalid'));
+  if (isNaN(parseFloat(savingsInput.value)) || savings < 0) {
+    savingsInput.classList.add('is-invalid');
+    invalid = true;
+  }
+  if (isNaN(parseFloat(taxRateInput.value)) || taxRate < 0) {
+    taxRateInput.classList.add('is-invalid');
+    invalid = true;
+  }
+  if (isNaN(parseFloat(positionCostInput.value)) || positionCost < 0) {
+    positionCostInput.classList.add('is-invalid');
+    invalid = true;
+  }
+  if (isNaN(parseFloat(lockPeriodInput.value)) || lockPeriod < 0) {
+    lockPeriodInput.classList.add('is-invalid');
+    invalid = true;
+  }
+
+  if (invalid) {
+    if (errorEl) {
+      errorEl.textContent = translations[currentLang].invalidInput;
+      errorEl.classList.remove('d-none');
+    }
+    hideLoadingIndicator();
+    return;
+  }
+
   const compound = document.getElementById('useCompoundInterest').checked;
 
   // Pobierz dane dla poszczególnych planów

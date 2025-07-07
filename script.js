@@ -26,7 +26,7 @@ const translations = {
     monthlyCostResultHeader: 'Koszt miesięczny (PLN)',
     periodCostHeader: 'Koszt za okres (PLN)',
     rateHeader: 'Oprocentowanie (%)',
-    grossHeader: 'Zysk brutto (PLN)',
+    grossCompoundHeader: 'Zysk brutto (PLN, kapitalizacja dzienna)',
     netHeader: 'Zysk netto (PLN)',
     profitHeader: 'Zysk końcowy (PLN)',
     editData: '<i class="fas fa-edit me-2"></i>Edytuj dane',
@@ -63,7 +63,7 @@ const translations = {
     monthlyCostResultHeader: 'Monthly cost (PLN)',
     periodCostHeader: 'Cost for period (PLN)',
     rateHeader: 'Rate (%)',
-    grossHeader: 'Gross interest (PLN)',
+    grossCompoundHeader: 'Gross interest (PLN, daily compound)',
     netHeader: 'Net interest (PLN)',
     profitHeader: 'Final profit (PLN)',
     editData: '<i class="fas fa-edit me-2"></i>Edit data',
@@ -162,6 +162,11 @@ function hideLoadingIndicator() {
   loadingButton = null;
 }
 
+function compoundInterestDaily(principal, annualRate, days) {
+  const dailyRate = annualRate / 100 / 365;
+  return principal * (Math.pow(1 + dailyRate, days) - 1);
+}
+
 function calculateResults() {
   // Pobierz dane wejściowe
   const savings = parseFloat(document.getElementById('savingsAmount').value);
@@ -184,7 +189,7 @@ function calculateResults() {
   plans.forEach(function(plan) {
     const totalMonthlyCost = plan.cost + positionCost; // includes position cost
     const periodCost = totalMonthlyCost * (lockPeriod / 30);
-    const grossInterest = savings * (plan.rate / 100) * (lockPeriod / 365);
+    const grossInterest = compoundInterestDaily(savings, plan.rate, lockPeriod);
     const netInterest = grossInterest * (1 - taxRate / 100);
     const profitAfterCost = netInterest - periodCost;
 

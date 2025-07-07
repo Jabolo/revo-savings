@@ -200,7 +200,8 @@ function calculateResults() {
   // Pobierz dane wejściowe
   const savings = parseFloat(document.getElementById('savingsAmount').value);
   const taxRate = parseFloat(document.getElementById('taxRate').value);
-  const positionCost = parseFloat(document.getElementById('positionCost').value); // New field
+  let positionCost = parseFloat(document.getElementById('positionCost').value);
+  if (isNaN(positionCost)) positionCost = 0; // allow temporarily blank/"-" input
   const lockPeriod = parseFloat(document.getElementById('lockPeriod').value);
   const compound = document.getElementById('useCompoundInterest').checked;
 

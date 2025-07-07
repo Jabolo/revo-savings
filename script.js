@@ -480,6 +480,12 @@ function triggerAutoCalc() {
   }
 }
 
+function escapeCsvValue(value) {
+  const needsQuotes = /[",\n]/.test(value);
+  let escaped = value.replace(/"/g, '""');
+  return needsQuotes ? `"${escaped}"` : escaped;
+}
+
 function downloadResultsCsv() {
   const table = document.querySelector('.result-table');
   if (!table) return;
@@ -487,9 +493,9 @@ function downloadResultsCsv() {
   const rows = Array.from(table.querySelectorAll('tbody tr'));
   if (rows.length === 0) return;
 
-  let csv = headers.join(',') + '\n';
+  let csv = headers.map(escapeCsvValue).join(',') + '\n';
   rows.forEach(row => {
-    const cells = Array.from(row.querySelectorAll('td')).map(td => td.textContent.trim());
+    const cells = Array.from(row.querySelectorAll('td')).map(td => escapeCsvValue(td.textContent.trim()));
     csv += cells.join(',') + '\n';
   });
 

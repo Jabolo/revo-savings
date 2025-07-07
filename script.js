@@ -8,6 +8,9 @@ const translations = {
     taxRateLabel: '<i class="fas fa-percent me-2 text-primary"></i>Podatek od zysków (%):',
     positionCostLabel: '<i class="fas fa-money-bill-wave me-2 text-primary"></i>Koszt pozyskania/utrzymania pozycji (PLN/mies.):',
     lockPeriodLabel: '<i class="fas fa-calendar-alt me-2 text-primary"></i>Czas lokaty (dni):',
+    billingLabel: 'Okres rozliczenia:',
+    billingMonthly: 'Miesi\u0119cznie',
+    billingAnnual: 'Rocznie (2 mies. gratis)',
     
     showPlans: 'Pokaż szczegóły planów oszczędności',
     plansHeader: 'Plany Oszczędności w Revo',
@@ -48,6 +51,9 @@ const translations = {
     taxRateLabel: '<i class="fas fa-percent me-2 text-primary"></i>Tax on gains (%):',
     positionCostLabel: '<i class="fas fa-money-bill-wave me-2 text-primary"></i>Position cost (PLN/month):',
     lockPeriodLabel: '<i class="fas fa-calendar-alt me-2 text-primary"></i>Lock duration (days):',
+    billingLabel: 'Billing period:',
+    billingMonthly: 'Monthly',
+    billingAnnual: 'Annually (2 months free)',
     showPlans: 'Show savings plan details',
     plansHeader: 'Revo Savings Plans',
     planHeader: 'Plan',
@@ -133,6 +139,13 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById(id).addEventListener('input', triggerAutoCalc);
   });
 
+  document.querySelectorAll('input[name="billingOption"]').forEach(el => {
+    el.addEventListener('change', triggerAutoCalc);
+  });
+  document.querySelectorAll('input[name="billingOptionModify"]').forEach(el => {
+    el.addEventListener('change', triggerAutoCalc);
+  });
+
   document.getElementById('useCompoundInterest').addEventListener('change', () => {
     updateGrossHeader();
     triggerAutoCalc();
@@ -204,6 +217,8 @@ function calculateResults() {
   if (isNaN(positionCost)) positionCost = 0; // allow temporarily blank/"-" input
   const lockPeriod = parseFloat(document.getElementById('lockPeriod').value);
   const compound = document.getElementById('useCompoundInterest').checked;
+  const billingOption = document.querySelector('input[name="billingOption"]:checked').value;
+  const billingFactor = billingOption === 'annual' ? (10 / 12) : 1;
 
   // Pobierz dane dla poszczególnych planów
   const plans = [
@@ -218,7 +233,8 @@ function calculateResults() {
 
   // Obliczenia dla każdego planu
   plans.forEach(function(plan) {
-    const totalMonthlyCost = plan.cost + positionCost; // includes position cost
+    const discountedPlanCost = plan.cost * billingFactor;
+    const totalMonthlyCost = discountedPlanCost + positionCost; // includes position cost
     const periodCost = totalMonthlyCost * (lockPeriod / 30);
     const grossInterest = compound
       ? compoundInterestDaily(savings, plan.rate, lockPeriod)
@@ -270,6 +286,13 @@ function calculateResults() {
   const compoundMod = document.getElementById('useCompoundInterestModify');
   if (compoundMod) {
     compoundMod.checked = document.getElementById('useCompoundInterest').checked;
+  }
+  const billingModAnnual = document.getElementById('billingAnnualModify');
+  const billingModMonthly = document.getElementById('billingMonthlyModify');
+  if (billingModAnnual && billingModMonthly) {
+    const billingMain = document.querySelector('input[name="billingOption"]:checked').value;
+    billingModAnnual.checked = billingMain === 'annual';
+    billingModMonthly.checked = billingMain === 'monthly';
   }
 }
 
@@ -467,6 +490,11 @@ function syncModifyToMain() {
   const compoundMod = document.getElementById('useCompoundInterestModify');
   if (compoundMod) {
     document.getElementById('useCompoundInterest').checked = compoundMod.checked;
+  }
+  const billingModVal = document.querySelector('input[name="billingOptionModify"]:checked');
+  if (billingModVal) {
+    document.getElementById('billingAnnual').checked = billingModVal.value === 'annual';
+    document.getElementById('billingMonthly').checked = billingModVal.value === 'monthly';
   }
 }
 

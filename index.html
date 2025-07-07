@@ -86,6 +86,22 @@
         <label class="form-check-label" for="useCompoundInterest" data-i18n="compoundLabel">Kapitalizacja dzienna</label>
       </div>
 
+      <div class="mb-4 row">
+        <label class="col-sm-4 col-form-label" data-i18n="billingLabel">
+          <i class="fas fa-credit-card me-2 text-primary"></i>Okres rozliczenia:
+        </label>
+        <div class="col-sm-8">
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="billingOption" id="billingAnnual" value="annual" checked>
+            <label class="form-check-label" for="billingAnnual" data-i18n="billingAnnual">Rocznie (2 mies. gratis)</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="billingOption" id="billingMonthly" value="monthly">
+            <label class="form-check-label" for="billingMonthly" data-i18n="billingMonthly">Miesięcznie</label>
+          </div>
+        </div>
+      </div>
+
 
       
       <!-- Collapsible Panel for Detailed Plans -->
@@ -215,6 +231,20 @@
       <div class="mb-3 form-check">
         <input class="form-check-input" type="checkbox" id="useCompoundInterestModify">
         <label class="form-check-label" for="useCompoundInterestModify" data-i18n="compoundLabel">Kapitalizacja dzienna</label>
+      </div>
+
+      <div class="mb-3 row">
+        <label class="col-sm-4 col-form-label" data-i18n="billingLabel">Okres rozliczenia:</label>
+        <div class="col-sm-8">
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="billingOptionModify" id="billingAnnualModify" value="annual" checked>
+            <label class="form-check-label" for="billingAnnualModify" data-i18n="billingAnnual">Rocznie (2 mies. gratis)</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="billingOptionModify" id="billingMonthlyModify" value="monthly">
+            <label class="form-check-label" for="billingMonthlyModify" data-i18n="billingMonthly">Miesięcznie</label>
+          </div>
+        </div>
       </div>
 
       </div>

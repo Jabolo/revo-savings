@@ -26,7 +26,9 @@ const translations = {
     monthlyCostResultHeader: 'Koszt miesięczny (PLN)',
     periodCostHeader: 'Koszt za okres (PLN)',
     rateHeader: 'Oprocentowanie (%)',
+    grossHeader: 'Zysk brutto (PLN)',
     grossCompoundHeader: 'Zysk brutto (PLN, kapitalizacja dzienna)',
+    compoundLabel: 'Kapitalizacja dzienna',
     netHeader: 'Zysk netto (PLN)',
     profitHeader: 'Zysk końcowy (PLN)',
     editData: '<i class="fas fa-edit me-2"></i>Edytuj dane',
@@ -63,7 +65,9 @@ const translations = {
     monthlyCostResultHeader: 'Monthly cost (PLN)',
     periodCostHeader: 'Cost for period (PLN)',
     rateHeader: 'Rate (%)',
+    grossHeader: 'Gross interest (PLN)',
     grossCompoundHeader: 'Gross interest (PLN, daily compound)',
+    compoundLabel: 'Daily compounding',
     netHeader: 'Net interest (PLN)',
     profitHeader: 'Final profit (PLN)',
     editData: '<i class="fas fa-edit me-2"></i>Edit data',
@@ -93,6 +97,7 @@ function applyTranslations() {
     }
   });
   document.getElementById('langDropdown').textContent = currentLang.toUpperCase();
+  updateGrossHeader();
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -127,6 +132,18 @@ document.addEventListener('DOMContentLoaded', function() {
   ['savingsModifyRange','lockModifyRange'].forEach(id => {
     document.getElementById(id).addEventListener('input', triggerAutoCalc);
   });
+
+  document.getElementById('useCompoundInterest').addEventListener('change', () => {
+    updateGrossHeader();
+    triggerAutoCalc();
+  });
+  const compoundMod = document.getElementById('useCompoundInterestModify');
+  if (compoundMod) {
+    compoundMod.addEventListener('change', () => {
+      updateGrossHeader();
+      triggerAutoCalc();
+    });
+  }
   
   // Initialize any tooltips or popovers if needed
   initializeTooltips();
@@ -167,12 +184,21 @@ function compoundInterestDaily(principal, annualRate, days) {
   return principal * (Math.pow(1 + dailyRate, days) - 1);
 }
 
+function updateGrossHeader() {
+  const header = document.getElementById('grossInterestHeader');
+  if (!header) return;
+  const useCompound = document.getElementById('useCompoundInterest').checked;
+  const key = useCompound ? 'grossCompoundHeader' : 'grossHeader';
+  header.innerHTML = translations[currentLang][key];
+}
+
 function calculateResults() {
   // Pobierz dane wejściowe
   const savings = parseFloat(document.getElementById('savingsAmount').value);
   const taxRate = parseFloat(document.getElementById('taxRate').value);
   const positionCost = parseFloat(document.getElementById('positionCost').value); // New field
   const lockPeriod = parseFloat(document.getElementById('lockPeriod').value);
+  const compound = document.getElementById('useCompoundInterest').checked;
 
   // Pobierz dane dla poszczególnych planów
   const plans = [
@@ -189,7 +215,9 @@ function calculateResults() {
   plans.forEach(function(plan) {
     const totalMonthlyCost = plan.cost + positionCost; // includes position cost
     const periodCost = totalMonthlyCost * (lockPeriod / 30);
-    const grossInterest = compoundInterestDaily(savings, plan.rate, lockPeriod);
+    const grossInterest = compound
+      ? compoundInterestDaily(savings, plan.rate, lockPeriod)
+      : savings * (plan.rate / 100) * (lockPeriod / 365);
     const netInterest = grossInterest * (1 - taxRate / 100);
     const profitAfterCost = netInterest - periodCost;
 
@@ -215,6 +243,8 @@ function calculateResults() {
   // Hide loading indicator
   hideLoadingIndicator();
 
+  updateGrossHeader();
+
   // Wypełnij tabelę wyników
   populateResultsTable(results, bestPlan);
 
@@ -231,6 +261,10 @@ function calculateResults() {
   document.getElementById('lockPeriodModify').value = document.getElementById('lockPeriod').value;
   document.getElementById('savingsModifyRange').value = document.getElementById('savingsRange').value;
   document.getElementById('lockModifyRange').value = document.getElementById('lockRange').value;
+  const compoundMod = document.getElementById('useCompoundInterestModify');
+  if (compoundMod) {
+    compoundMod.checked = document.getElementById('useCompoundInterest').checked;
+  }
 }
 
 function populateResultsTable(results, bestPlan) {
@@ -424,6 +458,10 @@ function syncModifyToMain() {
   document.getElementById('lockPeriod').value = document.getElementById('lockPeriodModify').value;
   document.getElementById('savingsRange').value = document.getElementById('savingsModifyRange').value;
   document.getElementById('lockRange').value = document.getElementById('lockModifyRange').value;
+  const compoundMod = document.getElementById('useCompoundInterestModify');
+  if (compoundMod) {
+    document.getElementById('useCompoundInterest').checked = compoundMod.checked;
+  }
 }
 
 function triggerAutoCalc() {

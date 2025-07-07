@@ -47,8 +47,8 @@
         </label>
         <div class="col-sm-8">
           <div class="d-flex align-items-center gap-2 flex-wrap">
-            <input type="number" class="form-control" id="savingsAmount" placeholder="np. 50000" value="50000" required>
-            <input type="range" class="form-range flex-grow-1" id="savingsRange" min="0" max="500000" step="1000">
+            <input type="number" class="form-control" id="savingsAmount" placeholder="np. 100000" value="100000" required>
+            <input type="range" class="form-range flex-grow-1" id="savingsRange" min="0" max="500000" step="1000" value="100000">
           </div>
         </div>
       </div>
@@ -65,7 +65,7 @@
           <i class="fas fa-money-bill-wave me-2 text-primary"></i>Koszt pozyskania/utrzymania pozycji (PLN/mies.):
         </label>
         <div class="col-sm-8">
-          <input type="number" class="form-control" id="positionCost" value="0" step="0.01" required>
+          <input type="number" class="form-control" id="positionCost" value="0" step="0.01" min="-1000000" required>
         </div>
       </div>
 
@@ -169,18 +169,18 @@
 <div class="accordion mt-4" id="modifyAccordion">
   <div class="accordion-item">
     <h2 class="accordion-header" id="headingModify">
-      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseModify" aria-expanded="false" aria-controls="collapseModify" data-i18n="modifyParams">
+      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseModify" aria-expanded="true" aria-controls="collapseModify" data-i18n="modifyParams">
         Modyfikuj parametry symulacji
       </button>
     </h2>
-    <div id="collapseModify" class="accordion-collapse collapse" aria-labelledby="headingModify" data-bs-parent="#modifyAccordion">
+    <div id="collapseModify" class="accordion-collapse collapse show" aria-labelledby="headingModify" data-bs-parent="#modifyAccordion">
       <div class="accordion-body">
         <div class="mb-3 row">
           <label for="savingsAmountModify" class="col-sm-4 col-form-label" data-i18n="savingsLabelMod">Kwota oszczędności (PLN):</label>
           <div class="col-sm-8">
             <div class="d-flex align-items-center gap-2 flex-wrap">
-              <input type="number" class="form-control" id="savingsAmountModify" placeholder="np. 50000" value="50000">
-              <input type="range" class="form-range flex-grow-1" id="savingsModifyRange" min="0" max="500000" step="1000">
+              <input type="number" class="form-control" id="savingsAmountModify" placeholder="np. 100000" value="100000">
+              <input type="range" class="form-range flex-grow-1" id="savingsModifyRange" min="0" max="500000" step="1000" value="100000">
             </div>
           </div>
         </div>
@@ -193,7 +193,7 @@
         <div class="mb-3 row">
           <label for="positionCostModify" class="col-sm-4 col-form-label" data-i18n="positionCostLabelMod">Koszt pozyskania/utrzymania pozycji (PLN/mies.):</label>
           <div class="col-sm-8">
-          <input type="number" class="form-control" id="positionCostModify" value="0" step="0.01">
+          <input type="number" class="form-control" id="positionCostModify" value="0" step="0.01" min="-1000000">
         </div>
       </div>
 
@@ -207,11 +207,6 @@
         </div>
       </div>
 
-        <div class="text-center">
-          <button id="recalculateBtn" class="btn btn-primary" data-i18n="recalculate">
-            <i class="fas fa-sync me-2"></i>Przelicz ponownie
-          </button>
-        </div>
       </div>
     </div>
   </div>

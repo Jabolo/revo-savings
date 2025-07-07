@@ -96,12 +96,6 @@ function applyTranslations() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-  const recalcButton = document.getElementById('recalculateBtn');
-  recalcButton.addEventListener('click', function() {
-    syncModifyToMain();
-    showLoadingIndicator(recalcButton);
-    setTimeout(calculateResults, 600);
-  });
   // Add event listener for form submission
   const simulationForm = document.getElementById('simulationForm');
   simulationForm.addEventListener('submit', function(e) {

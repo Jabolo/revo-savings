@@ -8,8 +8,7 @@ const translations = {
     taxRateLabel: '<i class="fas fa-percent me-2 text-primary"></i>Podatek od zysków (%):',
     positionCostLabel: '<i class="fas fa-money-bill-wave me-2 text-primary"></i>Koszt pozyskania/utrzymania pozycji (PLN/mies.):',
     lockPeriodLabel: '<i class="fas fa-calendar-alt me-2 text-primary"></i>Czas lokaty (dni):',
-    capitalPercentLabel: '<i class="fas fa-chart-pie me-2 text-primary"></i>Kapitał pracujący (%):',
-    interestPercentLabel: '<i class="fas fa-clock me-2 text-primary"></i>Dni naliczania odsetek (%):',
+    
     showPlans: 'Pokaż szczegóły planów oszczędności',
     plansHeader: 'Plany Oszczędności w Revo',
     planHeader: 'Plan',
@@ -22,8 +21,6 @@ const translations = {
     taxRateLabelMod: 'Podatek od zysków (%):',
     positionCostLabelMod: 'Koszt pozyskania/utrzymania pozycji (PLN/mies.):',
     lockPeriodLabelMod: 'Czas lokaty (dni):',
-    capitalPercentLabelMod: 'Kapitał pracujący (%):',
-    interestPercentLabelMod: 'Dni naliczania odsetek (%):',
     recalculate: '<i class="fas fa-sync me-2"></i>Przelicz ponownie',
     resultsHeader: 'Wyniki symulacji',
     monthlyCostResultHeader: 'Koszt miesięczny (PLN)',
@@ -49,8 +46,6 @@ const translations = {
     taxRateLabel: '<i class="fas fa-percent me-2 text-primary"></i>Tax on gains (%):',
     positionCostLabel: '<i class="fas fa-money-bill-wave me-2 text-primary"></i>Position cost (PLN/month):',
     lockPeriodLabel: '<i class="fas fa-calendar-alt me-2 text-primary"></i>Lock duration (days):',
-    capitalPercentLabel: '<i class="fas fa-chart-pie me-2 text-primary"></i>Working capital (%):',
-    interestPercentLabel: '<i class="fas fa-clock me-2 text-primary"></i>Interest days (%):',
     showPlans: 'Show savings plan details',
     plansHeader: 'Revo Savings Plans',
     planHeader: 'Plan',
@@ -63,8 +58,6 @@ const translations = {
     taxRateLabelMod: 'Tax on gains (%):',
     positionCostLabelMod: 'Position cost (PLN/month):',
     lockPeriodLabelMod: 'Lock duration (days):',
-    capitalPercentLabelMod: 'Working capital (%):',
-    interestPercentLabelMod: 'Interest days (%):',
     recalculate: '<i class="fas fa-sync me-2"></i>Recalculate',
     resultsHeader: 'Simulation Results',
     monthlyCostResultHeader: 'Monthly cost (PLN)',
@@ -103,20 +96,6 @@ function applyTranslations() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-  const recalcButton = document.getElementById('recalculateBtn');
-  recalcButton.addEventListener('click', function() {
-    // Update main form fields from the modify panel
-    document.getElementById('savingsAmount').value = document.getElementById('savingsAmountModify').value;
-    document.getElementById('taxRate').value = document.getElementById('taxRateModify').value;
-    document.getElementById('positionCost').value = document.getElementById('positionCostModify').value;
-    document.getElementById('lockPeriod').value = document.getElementById('lockPeriodModify').value;
-    document.getElementById('capitalPercent').value = document.getElementById('capitalPercentModify').value;
-    document.getElementById('interestPercent').value = document.getElementById('interestPercentModify').value;
-
-    // Recalculate results
-    showLoadingIndicator(recalcButton);
-    setTimeout(calculateResults, 600);
-  });
   // Add event listener for form submission
   const simulationForm = document.getElementById('simulationForm');
   simulationForm.addEventListener('submit', function(e) {
@@ -133,6 +112,20 @@ document.addEventListener('DOMContentLoaded', function() {
   // Add event listener for edit button
   document.getElementById('editFormBtn').addEventListener('click', function() {
     showSimulationForm();
+  });
+
+  // Sync numeric inputs with range sliders
+  setupRangeSync('savingsAmount', 'savingsRange');
+  setupRangeSync('lockPeriod', 'lockRange');
+  setupRangeSync('savingsAmountModify', 'savingsModifyRange');
+  setupRangeSync('lockPeriodModify', 'lockModifyRange');
+
+  // Auto recalc when modify fields change
+  ['savingsAmountModify','taxRateModify','positionCostModify','lockPeriodModify'].forEach(id => {
+    document.getElementById(id).addEventListener('input', triggerAutoCalc);
+  });
+  ['savingsModifyRange','lockModifyRange'].forEach(id => {
+    document.getElementById(id).addEventListener('input', triggerAutoCalc);
   });
   
   // Initialize any tooltips or popovers if needed
@@ -175,8 +168,6 @@ function calculateResults() {
   const taxRate = parseFloat(document.getElementById('taxRate').value);
   const positionCost = parseFloat(document.getElementById('positionCost').value); // New field
   const lockPeriod = parseFloat(document.getElementById('lockPeriod').value);
-  const capitalPercent = parseFloat(document.getElementById('capitalPercent').value) / 100;
-  const interestPercent = parseFloat(document.getElementById('interestPercent').value) / 100;
 
   // Pobierz dane dla poszczególnych planów
   const plans = [
@@ -193,7 +184,7 @@ function calculateResults() {
   plans.forEach(function(plan) {
     const totalMonthlyCost = plan.cost + positionCost; // includes position cost
     const periodCost = totalMonthlyCost * (lockPeriod / 30);
-    const grossInterest = savings * capitalPercent * (plan.rate / 100) * (lockPeriod / 365) * interestPercent;
+    const grossInterest = savings * (plan.rate / 100) * (lockPeriod / 365);
     const netInterest = grossInterest * (1 - taxRate / 100);
     const profitAfterCost = netInterest - periodCost;
 
@@ -233,8 +224,8 @@ function calculateResults() {
   document.getElementById('taxRateModify').value = document.getElementById('taxRate').value;
   document.getElementById('positionCostModify').value = document.getElementById('positionCost').value;
   document.getElementById('lockPeriodModify').value = document.getElementById('lockPeriod').value;
-  document.getElementById('capitalPercentModify').value = document.getElementById('capitalPercent').value;
-  document.getElementById('interestPercentModify').value = document.getElementById('interestPercent').value;
+  document.getElementById('savingsModifyRange').value = document.getElementById('savingsRange').value;
+  document.getElementById('lockModifyRange').value = document.getElementById('lockRange').value;
 }
 
 function populateResultsTable(results, bestPlan) {
@@ -400,4 +391,39 @@ function initializeTooltips() {
   // var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
   //   return new bootstrap.Tooltip(tooltipTriggerEl)
   // })
+}
+
+function setupRangeSync(inputId, rangeId) {
+  const input = document.getElementById(inputId);
+  const range = document.getElementById(rangeId);
+  if (!input || !range) return;
+  range.value = input.value;
+  input.addEventListener('input', () => {
+    const val = parseFloat(input.value);
+    if (!isNaN(val)) {
+      const min = parseFloat(range.min);
+      const max = parseFloat(range.max);
+      range.value = Math.min(Math.max(val, min), max);
+    }
+  });
+  range.addEventListener('input', () => {
+    input.value = range.value;
+  });
+}
+
+
+function syncModifyToMain() {
+  document.getElementById('savingsAmount').value = document.getElementById('savingsAmountModify').value;
+  document.getElementById('taxRate').value = document.getElementById('taxRateModify').value;
+  document.getElementById('positionCost').value = document.getElementById('positionCostModify').value;
+  document.getElementById('lockPeriod').value = document.getElementById('lockPeriodModify').value;
+  document.getElementById('savingsRange').value = document.getElementById('savingsModifyRange').value;
+  document.getElementById('lockRange').value = document.getElementById('lockModifyRange').value;
+}
+
+function triggerAutoCalc() {
+  if (!document.getElementById('resultSection').classList.contains('d-none')) {
+    syncModifyToMain();
+    calculateResults();
+  }
 }

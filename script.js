@@ -11,7 +11,7 @@ const translations = {
     billingLabel: 'Okres rozliczenia:',
     billingMonthly: 'Miesi\u0119cznie',
     billingAnnual: 'Rocznie (2 mies. gratis)',
-    
+
     showPlans: 'Pokaż szczegóły planów oszczędności',
     plansHeader: 'Plany Oszczędności w Revo',
     planHeader: 'Plan',
@@ -110,22 +110,33 @@ function applyTranslations() {
   updateGrossHeader();
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
+  const recalcButton = document.getElementById('recalculateBtn');
+  recalcButton.addEventListener('click', function () {
+    // Update main form fields from the modify panel
+    document.getElementById('savingsAmount').value = document.getElementById('savingsAmountModify').value;
+    document.getElementById('taxRate').value = document.getElementById('taxRateModify').value;
+    document.getElementById('positionCost').value = document.getElementById('positionCostModify').value;
+
+    // Recalculate results
+    showLoadingIndicator(recalcButton);
+    setTimeout(calculateResults, 600);
+  });
   // Add event listener for form submission
   const simulationForm = document.getElementById('simulationForm');
-  simulationForm.addEventListener('submit', function(e) {
+  simulationForm.addEventListener('submit', function (e) {
     e.preventDefault();
 
     // Show loading indicator
     const submitButton = simulationForm.querySelector('button[type="submit"]');
     showLoadingIndicator(submitButton);
-    
+
     // Simulate processing delay (for UX)
     setTimeout(calculateResults, 600);
   });
-  
+
   // Add event listener for edit button
-  document.getElementById('editFormBtn').addEventListener('click', function() {
+  document.getElementById('editFormBtn').addEventListener('click', function () {
     showSimulationForm();
   });
   document.getElementById('downloadCsv').addEventListener('click', downloadResultsCsv);
@@ -137,10 +148,10 @@ document.addEventListener('DOMContentLoaded', function() {
   setupRangeSync('lockPeriodModify', 'lockModifyRange');
 
   // Auto recalc when modify fields change
-  ['savingsAmountModify','taxRateModify','positionCostModify','lockPeriodModify'].forEach(id => {
+  ['savingsAmountModify', 'taxRateModify', 'positionCostModify', 'lockPeriodModify'].forEach(id => {
     document.getElementById(id).addEventListener('input', triggerAutoCalc);
   });
-  ['savingsModifyRange','lockModifyRange'].forEach(id => {
+  ['savingsModifyRange', 'lockModifyRange'].forEach(id => {
     document.getElementById(id).addEventListener('input', triggerAutoCalc);
   });
 
@@ -162,13 +173,13 @@ document.addEventListener('DOMContentLoaded', function() {
       triggerAutoCalc();
     });
   }
-  
+
   // Initialize any tooltips or popovers if needed
   initializeTooltips();
 
   // Language selector
-  document.querySelectorAll('.lang-option').forEach(function(el) {
-    el.addEventListener('click', function(e) {
+  document.querySelectorAll('.lang-option').forEach(function (el) {
+    el.addEventListener('click', function (e) {
       e.preventDefault();
       currentLang = el.getAttribute('data-lang');
       localStorage.setItem('lang', currentLang);
@@ -180,7 +191,48 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   applyTranslations();
+
+  // Fetch latest rates from GitHub (fallback to default if fails)
+  fetchLatestRates();
 });
+
+async function fetchLatestRates() {
+  // Use local file if on localhost, otherwise use the live GitHub Raw file
+  const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+  const RATES_URL = isLocal
+    ? 'rates.json'
+    : 'https://raw.githubusercontent.com/Jabolo/revo-savings/main/rates.json';
+
+  try {
+    const response = await fetch(RATES_URL);
+    if (!response.ok) throw new Error(`Network response was not ok (${response.status})`);
+
+    const data = await response.json();
+    console.log(`Rates fetched successfully from ${isLocal ? 'local file' : 'GitHub'}:`, data);
+
+    if (data && data.rates) {
+      // Update fields with fetched data
+      if (data.rates.Standard) document.getElementById('rateStandard').value = data.rates.Standard.toFixed(2);
+      if (data.rates.Plus) document.getElementById('ratePlus').value = data.rates.Plus.toFixed(2);
+      if (data.rates.Premium) document.getElementById('ratePremium').value = data.rates.Premium.toFixed(2);
+      if (data.rates.Metal) document.getElementById('rateMetal').value = data.rates.Metal.toFixed(2);
+      if (data.rates.Ultra) document.getElementById('rateUltra').value = data.rates.Ultra.toFixed(2);
+
+      // Optional: Add a visual indicator that rates are live
+      const titleElement = document.querySelector('h1.text-center');
+      if (titleElement) {
+        const badge = document.createElement('span');
+        badge.className = 'badge bg-success ms-2 fs-6 align-middle';
+        badge.innerHTML = '<i class="fas fa-check-circle me-1"></i>Live';
+        badge.title = `Rates updated: ${new Date(data.updatedAt).toLocaleDateString()}`;
+        titleElement.appendChild(badge);
+      }
+    }
+  } catch (error) {
+    console.log('Using default rates (fetch failed):', error);
+    // Silent fail - the app will just use the hardcoded values (which we recently updated)
+  }
+}
 
 let loadingButton = null;
 
@@ -281,7 +333,7 @@ function calculateResults() {
   let results = [];
 
   // Obliczenia dla każdego planu
-  plans.forEach(function(plan) {
+  plans.forEach(function (plan) {
     const discountedPlanCost = plan.cost * billingFactor;
     const totalMonthlyCost = discountedPlanCost + positionCost; // includes position cost
     const periodCost = totalMonthlyCost * (lockPeriod / 30);
@@ -305,7 +357,7 @@ function calculateResults() {
 
   // Wyznacz najlepszy plan (najwyższy zysk końcowy)
   let bestPlan = results[0];
-  results.forEach(function(r) {
+  results.forEach(function (r) {
     if (parseFloat(r.profitAfterCost) > parseFloat(bestPlan.profitAfterCost)) {
       bestPlan = r;
     }
@@ -348,20 +400,20 @@ function calculateResults() {
 function populateResultsTable(results, bestPlan) {
   let tableBody = document.getElementById('resultTableBody');
   tableBody.innerHTML = "";
-  
-  results.forEach(function(r) {
+
+  results.forEach(function (r) {
     let row = document.createElement('tr');
     // Wyróżnij najlepszy plan
     if (r.plan === bestPlan.plan) {
       row.classList.add('best-plan');
     }
-    
+
     // Format profit value with color and icon
     const profitClass = parseFloat(r.profitAfterCost) >= 0 ? 'positive-profit' : 'negative-profit';
-    const profitIcon = parseFloat(r.profitAfterCost) >= 0 ? 
-      '<i class="fas fa-arrow-up text-success me-1"></i>' : 
+    const profitIcon = parseFloat(r.profitAfterCost) >= 0 ?
+      '<i class="fas fa-arrow-up text-success me-1"></i>' :
       '<i class="fas fa-arrow-down text-danger me-1"></i>';
-    
+
     row.innerHTML = `
       <td class="fw-medium">${r.plan}</td>
       <td>${r.monthlyCost} PLN</td>
@@ -373,43 +425,43 @@ function populateResultsTable(results, bestPlan) {
     `;
     tableBody.appendChild(row);
   });
-  
+
   // Set best plan message with icon
   const profitAmount = parseFloat(bestPlan.profitAfterCost);
-  const profitIcon = profitAmount >= 0 ? 
-    '<i class="fas fa-trophy me-2"></i>' : 
+  const profitIcon = profitAmount >= 0 ?
+    '<i class="fas fa-trophy me-2"></i>' :
     '<i class="fas fa-exclamation-triangle me-2"></i>';
-  
+
   const bestPlanMessage = profitAmount >= 0 ?
     translations[currentLang].bestPlan(bestPlan.plan, bestPlan.profitAfterCost) :
     translations[currentLang].allLosses(bestPlan.plan, bestPlan.profitAfterCost);
-  
+
   document.getElementById('bestPlan').innerHTML = bestPlanMessage;
 }
 
 function createProfitChart(results) {
   // Get the canvas element
   const ctx = document.getElementById('profitChart').getContext('2d');
-  
+
   // Destroy previous chart if exists
   if (window.profitChart instanceof Chart) {
     window.profitChart.destroy();
   }
-  
+
   // Prepare data for chart
   const labels = results.map(r => r.plan);
   const profitData = results.map(r => parseFloat(r.profitAfterCost));
   const interestRates = results.map(r => parseFloat(r.rate));
-  
+
   // Determine colors based on profit values
-  const backgroundColors = profitData.map(value => 
+  const backgroundColors = profitData.map(value =>
     value >= 0 ? 'rgba(6, 102, 235, 0.6)' : 'rgba(220, 53, 69, 0.6)'
   );
-  
-  const borderColors = profitData.map(value => 
+
+  const borderColors = profitData.map(value =>
     value >= 0 ? 'rgba(6, 102, 235, 1)' : 'rgba(220, 53, 69, 1)'
   );
-  
+
   window.profitChart = new Chart(ctx, {
     type: 'bar',
     data: {
@@ -434,7 +486,7 @@ function createProfitChart(results) {
         },
         tooltip: {
           callbacks: {
-            afterLabel: function(context) {
+            afterLabel: function (context) {
               const idx = context.dataIndex;
               return `${translations[currentLang].interestRate}: ${interestRates[idx]}%`;
             }
@@ -461,16 +513,16 @@ function createProfitChart(results) {
 function showResultsSection() {
   const simSection = document.getElementById('simulationSection');
   const resSection = document.getElementById('resultSection');
-  
+
   // Fade out the simulation form
   simSection.classList.add('fade-out');
-  
-  setTimeout(function() {
+
+  setTimeout(function () {
     simSection.classList.add('d-none'); // hide simulation section
     resSection.classList.remove('d-none'); // show results section
-    
+
     // Delay to allow DOM update before fade-in
-    setTimeout(function() {
+    setTimeout(function () {
       resSection.classList.add('fade-in');
       // Scroll to the results section
       resSection.scrollIntoView({ behavior: 'smooth' });
@@ -482,18 +534,18 @@ function showSimulationForm() {
   // Show simulation form again, hide results with smooth transitions
   const simSection = document.getElementById('simulationSection');
   const resSection = document.getElementById('resultSection');
-  
+
   // Fade out results section
   resSection.classList.remove('fade-in');
   resSection.classList.add('fade-out');
-  
-  setTimeout(function() {
+
+  setTimeout(function () {
     resSection.classList.add('d-none');
     simSection.classList.remove('d-none');
     simSection.classList.remove('fade-out');
-    
+
     // Delay to allow DOM update before fade-in
-    setTimeout(function() {
+    setTimeout(function () {
       simSection.classList.add('fade-in');
       // Scroll back to the simulation form
       simSection.scrollIntoView({ behavior: 'smooth' });

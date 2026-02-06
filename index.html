@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pl">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -18,7 +19,8 @@
 <body>
   <div class="container">
     <div class="lang-selector dropdown text-end mb-2">
-      <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="langDropdown" data-bs-toggle="dropdown" aria-expanded="false">PL</button>
+      <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="langDropdown"
+        data-bs-toggle="dropdown" aria-expanded="false">PL</button>
       <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="langDropdown">
         <li><a class="dropdown-item lang-option" data-lang="pl" href="#">Polski</a></li>
         <li><a class="dropdown-item lang-option" data-lang="en" href="#">English</a></li>
@@ -27,231 +29,251 @@
     <h1 class="mb-4 text-center">
       <i class="fas fa-chart-line me-2"></i><span data-i18n="heading">Symulacja Zysków z Oszczędności</span>
     </h1>
-    
-<!-- Description at the top -->
-<div class="mb-4 text-center">
-  <p class="lead" data-i18n="description">
-    Ten kalkulator symuluje zyski z oszczędności w Revo Savings, gdzie odsetki naliczane są codziennie.
-    Wprowadź kwotę oszczędności, stawkę podatku oraz koszt utrzymania pozycji (np. koszt pozyczki), aby zobaczyć symulację.
-    <br>Domyślne ustawienia odpowiadają ofercie Revo z 1-dniowym naliczaniem odsetek.
-  </p>
-</div>
 
-<!-- Main Input Fields -->
-<div id="simulationSection" class="card mb-4">
-  <div class="card-body">
-      <form id="simulationForm">
-        <div id="inputError" class="alert alert-danger d-none" role="alert"></div>
-      <div class="mb-4 row">
-        <label for="savingsAmount" class="col-sm-4 col-form-label" data-i18n="savingsLabel">
-          <i class="fas fa-wallet me-2 text-primary"></i>Kwota oszczędności (PLN):
-        </label>
-        <div class="col-sm-8">
-          <div class="d-flex align-items-center gap-2 flex-wrap">
-            <input type="number" class="form-control" id="savingsAmount" placeholder="np. 100000" value="100000" min="0" required>
-            <input type="range" class="form-range flex-grow-1" id="savingsRange" min="0" max="500000" step="1000" value="100000">
+    <!-- Description at the top -->
+    <div class="mb-4 text-center">
+      <p class="lead" data-i18n="description">
+        Ten kalkulator symuluje zyski z oszczędności w Revo Savings, gdzie odsetki naliczane są codziennie.
+        Wprowadź kwotę oszczędności, stawkę podatku oraz koszt utrzymania pozycji (np. koszt pozyczki), aby zobaczyć
+        symulację.
+        <br>Domyślne ustawienia odpowiadają ofercie Revo z 1-dniowym naliczaniem odsetek.
+      </p>
+    </div>
+
+    <!-- Main Input Fields -->
+    <div id="simulationSection" class="card mb-4">
+      <div class="card-body">
+        <form id="simulationForm">
+          <div id="inputError" class="alert alert-danger d-none" role="alert"></div>
+          <div class="mb-4 row">
+            <label for="savingsAmount" class="col-sm-4 col-form-label" data-i18n="savingsLabel">
+              <i class="fas fa-wallet me-2 text-primary"></i>Kwota oszczędności (PLN):
+            </label>
+            <div class="col-sm-8">
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <input type="number" class="form-control" id="savingsAmount" placeholder="np. 100000" value="100000"
+                  min="0" required>
+                <input type="range" class="form-range flex-grow-1" id="savingsRange" min="0" max="500000" step="1000"
+                  value="100000">
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-      <div class="mb-4 row">
-        <label for="taxRate" class="col-sm-4 col-form-label" data-i18n="taxRateLabel">
-          <i class="fas fa-percent me-2 text-primary"></i>Podatek od zysków (%):
-        </label>
-        <div class="col-sm-8">
-          <input type="number" class="form-control" id="taxRate" value="19" step="0.1" min="0" required>
-        </div>
-      </div>
-      <div class="mb-4 row">
-        <label for="positionCost" class="col-sm-4 col-form-label" data-i18n="positionCostLabel">
-          <i class="fas fa-money-bill-wave me-2 text-primary"></i>Koszt pozyskania/utrzymania pozycji (PLN/mies.):
-        </label>
-        <div class="col-sm-8">
-          <input type="number" class="form-control" id="positionCost" value="0" step="0.01" min="0" required>
-        </div>
-      </div>
-
-      <div class="mb-4 row">
-        <label for="lockPeriod" class="col-sm-4 col-form-label" data-i18n="lockPeriodLabel">
-          <i class="fas fa-calendar-alt me-2 text-primary"></i>Czas lokaty (dni):
-        </label>
-        <div class="col-sm-8">
-          <div class="d-flex align-items-center gap-2 flex-wrap">
-            <input type="number" class="form-control" id="lockPeriod" value="365" min="0" required>
-            <input type="range" class="form-range flex-grow-1" id="lockRange" min="0" max="365" step="1">
+          <div class="mb-4 row">
+            <label for="taxRate" class="col-sm-4 col-form-label" data-i18n="taxRateLabel">
+              <i class="fas fa-percent me-2 text-primary"></i>Podatek od zysków (%):
+            </label>
+            <div class="col-sm-8">
+              <input type="number" class="form-control" id="taxRate" value="19" step="0.1" min="0" required>
+            </div>
           </div>
-        </div>
-      </div>
-
-      <div class="mb-4 form-check">
-        <input class="form-check-input" type="checkbox" id="useCompoundInterest" checked>
-        <label class="form-check-label" for="useCompoundInterest" data-i18n="compoundLabel">Kapitalizacja dzienna</label>
-      </div>
-
-      <div class="mb-4 row">
-        <label class="col-sm-4 col-form-label" data-i18n="billingLabel">
-          <i class="fas fa-credit-card me-2 text-primary"></i>Okres rozliczenia:
-        </label>
-        <div class="col-sm-8">
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="billingOption" id="billingAnnual" value="annual" checked>
-            <label class="form-check-label" for="billingAnnual" data-i18n="billingAnnual">Rocznie (2 mies. gratis)</label>
+          <div class="mb-4 row">
+            <label for="positionCost" class="col-sm-4 col-form-label" data-i18n="positionCostLabel">
+              <i class="fas fa-money-bill-wave me-2 text-primary"></i>Koszt pozyskania/utrzymania pozycji (PLN/mies.):
+            </label>
+            <div class="col-sm-8">
+              <input type="number" class="form-control" id="positionCost" value="0" step="0.01" min="0" required>
+            </div>
           </div>
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="billingOption" id="billingMonthly" value="monthly">
-            <label class="form-check-label" for="billingMonthly" data-i18n="billingMonthly">Miesięcznie</label>
+
+          <div class="mb-4 row">
+            <label for="lockPeriod" class="col-sm-4 col-form-label" data-i18n="lockPeriodLabel">
+              <i class="fas fa-calendar-alt me-2 text-primary"></i>Czas lokaty (dni):
+            </label>
+            <div class="col-sm-8">
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <input type="number" class="form-control" id="lockPeriod" value="365" min="0" required>
+                <input type="range" class="form-range flex-grow-1" id="lockRange" min="0" max="365" step="1">
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+
+          <div class="mb-4 form-check">
+            <input class="form-check-input" type="checkbox" id="useCompoundInterest" checked>
+            <label class="form-check-label" for="useCompoundInterest" data-i18n="compoundLabel">Kapitalizacja
+              dzienna</label>
+          </div>
+
+          <div class="mb-4 row">
+            <label class="col-sm-4 col-form-label" data-i18n="billingLabel">
+              <i class="fas fa-credit-card me-2 text-primary"></i>Okres rozliczenia:
+            </label>
+            <div class="col-sm-8">
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="billingOption" id="billingAnnual" value="annual"
+                  checked>
+                <label class="form-check-label" for="billingAnnual" data-i18n="billingAnnual">Rocznie (2 mies.
+                  gratis)</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="billingOption" id="billingMonthly" value="monthly">
+                <label class="form-check-label" for="billingMonthly" data-i18n="billingMonthly">Miesięcznie</label>
+              </div>
+            </div>
+          </div>
 
 
-      
-      <!-- Collapsible Panel for Detailed Plans -->
-      <div class="mb-4 text-center">
-        <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#planDetails" aria-expanded="false" aria-controls="planDetails" data-i18n="showPlans">
-          Pokaż szczegóły planów oszczędności
-        </button>
-      </div>
-      <div class="collapse" id="planDetails">
-        <div class="card card-body">
-          <h5 class="mb-3" data-i18n="plansHeader">Plany Oszczędności w Revo</h5>
-          <div class="table-responsive">
-            <table class="table table-bordered plan-table">
-              <thead class="table-light">
-                <tr>
-                  <th data-i18n="planHeader">Plan</th>
-                  <th data-i18n="monthlyCostHeader">Miesięczny koszt (PLN)</th>
-                  <th data-i18n="annualRateHeader">Oprocentowanie roczne (%)</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td class="fw-medium">Standard</td>
-                  <td>
-                    <input type="number" class="form-control" id="costStandard" value="0" step="0.01" min="0">
-                  </td>
-                  <td>
-                    <input type="number" class="form-control rate-cell" id="rateStandard" value="3.00" step="0.01" min="0">
-                  </td>
-                </tr>
-                <tr>
-                  <td class="fw-medium">Plus (19,99)</td>
-                  <td>
-                    <input type="number" class="form-control" id="costPlus" value="19.99" step="0.01" min="0">
-                  </td>
-                  <td>
-                    <input type="number" class="form-control rate-cell" id="ratePlus" value="3.25" step="0.01" min="0">
-                  </td>
-                </tr>
-                <tr>
-                  <td class="fw-medium">Premium (33,33)</td>
-                  <td>
-                    <input type="number" class="form-control" id="costPremium" value="33.33" step="0.01" min="0">
-                  </td>
-                  <td>
-                    <input type="number" class="form-control rate-cell" id="ratePremium" value="4.00" step="0.01" min="0">
-                  </td>
-                </tr>
-                <tr>
-                  <td class="fw-medium">Metal (55,99)</td>
-                  <td>
-                    <input type="number" class="form-control" id="costMetal" value="55.99" step="0.01" min="0">
-                  </td>
-                  <td>
-                    <input type="number" class="form-control rate-cell" id="rateMetal" value="4.50" step="0.01" min="0">
-                  </td>
-                </tr>
-                <tr>
-                  <td class="fw-medium">Ultra (210)</td>
-                  <td>
-                    <input type="number" class="form-control" id="costUltra" value="210.00" step="0.01" min="0">
-                  </td>
-                  <td>
-                    <input type="number" class="form-control rate-cell" id="rateUltra" value="5.00" step="0.01" min="0">
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+
+          <!-- Collapsible Panel for Detailed Plans -->
+          <div class="mb-4 text-center">
+            <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse"
+              data-bs-target="#planDetails" aria-expanded="false" aria-controls="planDetails" data-i18n="showPlans">
+              Pokaż szczegóły planów oszczędności
+            </button>
           </div>
-        </div>
+          <div class="collapse" id="planDetails">
+            <div class="card card-body">
+              <h5 class="mb-3" data-i18n="plansHeader">Plany Oszczędności w Revo</h5>
+              <div class="table-responsive">
+                <table class="table table-bordered plan-table">
+                  <thead class="table-light">
+                    <tr>
+                      <th data-i18n="planHeader">Plan</th>
+                      <th data-i18n="monthlyCostHeader">Miesięczny koszt (PLN)</th>
+                      <th data-i18n="annualRateHeader">Oprocentowanie roczne (%)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="fw-medium">Standard</td>
+                      <td>
+                        <input type="number" class="form-control" id="costStandard" value="0" step="0.01" min="0">
+                      </td>
+                      <td>
+                        <input type="number" class="form-control rate-cell" id="rateStandard" value="2.75" step="0.01">
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="fw-medium">Plus (19,99)</td>
+                      <td>
+                        <input type="number" class="form-control" id="costPlus" value="19.99" step="0.01" min="0">
+                      </td>
+                      <td>
+                        <input type="number" class="form-control rate-cell" id="ratePlus" value="2.75" step="0.01">
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="fw-medium">Premium (33,33)</td>
+                      <td>
+                        <input type="number" class="form-control" id="costPremium" value="33.33" step="0.01" min="0">
+                      </td>
+                      <td>
+                        <input type="number" class="form-control rate-cell" id="ratePremium" value="3.25" step="0.01">
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="fw-medium">Metal (55,99)</td>
+                      <td>
+                        <input type="number" class="form-control" id="costMetal" value="55.99" step="0.01" min="0">
+                      </td>
+                      <td>
+                        <input type="number" class="form-control rate-cell" id="rateMetal" value="3.75" step="0.01">
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="fw-medium">Ultra (210)</td>
+                      <td>
+                        <input type="number" class="form-control" id="costUltra" value="210.00" step="0.01" min="0">
+                      </td>
+                      <td>
+                        <input type="number" class="form-control rate-cell" id="rateUltra" value="4.00" step="0.01">
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Oblicz Button -->
+          <div class="text-center mt-4">
+            <button type="submit" class="btn btn-primary" data-i18n="calcButton">
+              <i class="fas fa-calculator me-2"></i>Oblicz
+            </button>
+          </div>
+        </form>
       </div>
-      
-      <!-- Oblicz Button -->
-      <div class="text-center mt-4">
-        <button type="submit" class="btn btn-primary" data-i18n="calcButton">
-          <i class="fas fa-calculator me-2"></i>Oblicz
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
-    
+    </div>
+
     <!-- Sekcja wyników -->
     <div id="resultSection" class="card mb-4 d-none">
       <!-- Collapsible panel for modifying parameters -->
-<div class="accordion mt-4" id="modifyAccordion">
-  <div class="accordion-item">
-    <h2 class="accordion-header" id="headingModify">
-      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseModify" aria-expanded="true" aria-controls="collapseModify" data-i18n="modifyParams">
-        Modyfikuj parametry symulacji
-      </button>
-    </h2>
-    <div id="collapseModify" class="accordion-collapse collapse show" aria-labelledby="headingModify" data-bs-parent="#modifyAccordion">
-      <div class="accordion-body">
-        <div class="mb-3 row">
-          <label for="savingsAmountModify" class="col-sm-4 col-form-label" data-i18n="savingsLabelMod">Kwota oszczędności (PLN):</label>
-          <div class="col-sm-8">
-            <div class="d-flex align-items-center gap-2 flex-wrap">
-              <input type="number" class="form-control" id="savingsAmountModify" placeholder="np. 100000" value="100000" min="0">
-              <input type="range" class="form-range flex-grow-1" id="savingsModifyRange" min="0" max="500000" step="1000" value="100000">
+      <div class="accordion mt-4" id="modifyAccordion">
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="headingModify">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseModify"
+              aria-expanded="true" aria-controls="collapseModify" data-i18n="modifyParams">
+              Modyfikuj parametry symulacji
+            </button>
+          </h2>
+          <div id="collapseModify" class="accordion-collapse collapse show" aria-labelledby="headingModify"
+            data-bs-parent="#modifyAccordion">
+            <div class="accordion-body">
+              <div class="mb-3 row">
+                <label for="savingsAmountModify" class="col-sm-4 col-form-label" data-i18n="savingsLabelMod">Kwota
+                  oszczędności (PLN):</label>
+                <div class="col-sm-8">
+                  <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <input type="number" class="form-control" id="savingsAmountModify" placeholder="np. 100000"
+                      value="100000" min="0">
+                    <input type="range" class="form-range flex-grow-1" id="savingsModifyRange" min="0" max="500000"
+                      step="1000" value="100000">
+                  </div>
+                </div>
+              </div>
+              <div class="mb-3 row">
+                <label for="taxRateModify" class="col-sm-4 col-form-label" data-i18n="taxRateLabelMod">Podatek od zysków
+                  (%):</label>
+                <div class="col-sm-8">
+                  <input type="number" class="form-control" id="taxRateModify" value="19" step="0.1" min="0">
+                </div>
+              </div>
+              <div class="mb-3 row">
+                <label for="positionCostModify" class="col-sm-4 col-form-label" data-i18n="positionCostLabelMod">Koszt
+                  pozyskania/utrzymania pozycji (PLN/mies.):</label>
+                <div class="col-sm-8">
+                  <input type="number" class="form-control" id="positionCostModify" value="0" step="0.01" min="0">
+                </div>
+              </div>
+
+              <div class="mb-3 row">
+                <label for="lockPeriodModify" class="col-sm-4 col-form-label" data-i18n="lockPeriodLabelMod">Czas lokaty
+                  (dni):</label>
+                <div class="col-sm-8">
+                  <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <input type="number" class="form-control" id="lockPeriodModify" value="365" min="0">
+                    <input type="range" class="form-range flex-grow-1" id="lockModifyRange" min="0" max="365" step="1">
+                  </div>
+                </div>
+              </div>
+
+              <div class="mb-3 form-check">
+                <input class="form-check-input" type="checkbox" id="useCompoundInterestModify">
+                <label class="form-check-label" for="useCompoundInterestModify" data-i18n="compoundLabel">Kapitalizacja
+                  dzienna</label>
+              </div>
+
+              <div class="mb-3 row">
+                <label class="col-sm-4 col-form-label" data-i18n="billingLabel">Okres rozliczenia:</label>
+                <div class="col-sm-8">
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="billingOptionModify" id="billingAnnualModify"
+                      value="annual" checked>
+                    <label class="form-check-label" for="billingAnnualModify" data-i18n="billingAnnual">Rocznie (2 mies.
+                      gratis)</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="billingOptionModify" id="billingMonthlyModify"
+                      value="monthly">
+                    <label class="form-check-label" for="billingMonthlyModify"
+                      data-i18n="billingMonthly">Miesięcznie</label>
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
         </div>
-        <div class="mb-3 row">
-          <label for="taxRateModify" class="col-sm-4 col-form-label" data-i18n="taxRateLabelMod">Podatek od zysków (%):</label>
-          <div class="col-sm-8">
-            <input type="number" class="form-control" id="taxRateModify" value="19" step="0.1" min="0">
-          </div>
-        </div>
-        <div class="mb-3 row">
-          <label for="positionCostModify" class="col-sm-4 col-form-label" data-i18n="positionCostLabelMod">Koszt pozyskania/utrzymania pozycji (PLN/mies.):</label>
-          <div class="col-sm-8">
-          <input type="number" class="form-control" id="positionCostModify" value="0" step="0.01" min="0">
-        </div>
       </div>
-
-      <div class="mb-3 row">
-        <label for="lockPeriodModify" class="col-sm-4 col-form-label" data-i18n="lockPeriodLabelMod">Czas lokaty (dni):</label>
-        <div class="col-sm-8">
-          <div class="d-flex align-items-center gap-2 flex-wrap">
-            <input type="number" class="form-control" id="lockPeriodModify" value="365" min="0">
-            <input type="range" class="form-range flex-grow-1" id="lockModifyRange" min="0" max="365" step="1">
-          </div>
-        </div>
-      </div>
-
-      <div class="mb-3 form-check">
-        <input class="form-check-input" type="checkbox" id="useCompoundInterestModify">
-        <label class="form-check-label" for="useCompoundInterestModify" data-i18n="compoundLabel">Kapitalizacja dzienna</label>
-      </div>
-
-      <div class="mb-3 row">
-        <label class="col-sm-4 col-form-label" data-i18n="billingLabel">Okres rozliczenia:</label>
-        <div class="col-sm-8">
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="billingOptionModify" id="billingAnnualModify" value="annual" checked>
-            <label class="form-check-label" for="billingAnnualModify" data-i18n="billingAnnual">Rocznie (2 mies. gratis)</label>
-          </div>
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="billingOptionModify" id="billingMonthlyModify" value="monthly">
-            <label class="form-check-label" for="billingMonthlyModify" data-i18n="billingMonthly">Miesięcznie</label>
-          </div>
-        </div>
-      </div>
-
-      </div>
-    </div>
-  </div>
-</div>
 
 
       <div class="card-body">
@@ -259,12 +281,12 @@
         <div class="mb-4">
           <p id="bestPlan" class="fs-5"></p>
         </div>
-        
+
         <!-- Chart for visualization -->
         <div class="chart-container">
           <canvas id="profitChart"></canvas>
         </div>
-        
+
         <div class="table-responsive">
           <table class="table table-bordered result-table">
             <thead class="table-light">
@@ -292,7 +314,7 @@
         </div>
       </div>
     </div>
-    
+
     <!-- Footer with official comparison link -->
     <footer class="mt-4 text-center">
       <p>
@@ -304,10 +326,11 @@
       <small class="text-muted" data-i18n="footerNote">© 2025 Kalkulator Revo Savings</small>
     </footer>
   </div>
-  
+
   <!-- Bootstrap Bundle JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <!-- External JS -->
   <script src="script.js"></script>
 </body>
+
 </html>

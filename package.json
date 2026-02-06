@@ -1,0 +1,15 @@
+{
+    "name": "revolut-savings-scraper",
+    "version": "1.0.0",
+    "description": "Scraper to update Revolut savings rates",
+    "main": "scripts/update-rates.js",
+    "scripts": {
+        "start": "node scripts/update-rates.js",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "dependencies": {
+        "puppeteer": "^21.0.0"
+    },
+    "author": "",
+    "license": "ISC"
+}

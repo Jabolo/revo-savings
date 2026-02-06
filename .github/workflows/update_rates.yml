@@ -1,0 +1,46 @@
+name: Update Savings Rates
+
+on:
+  schedule:
+    # Run every day at 6:00 UTC
+    - cron: '0 6 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  update-rates:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run scraper
+        run: node scripts/update-rates.js
+
+      - name: Commit and push changes
+        id: commit
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          # Check if there are changes
+          if [[ `git status --porcelain` ]]; then
+            git add rates.json
+            git commit -m "chore: update savings rates [skip ci]"
+            git push
+            echo "changes_pushed=true" >> $GITHUB_OUTPUT
+          else
+            echo "No changes to commit"
+            echo "changes_pushed=false" >> $GITHUB_OUTPUT
+          fi

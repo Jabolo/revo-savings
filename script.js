@@ -112,16 +112,18 @@ function applyTranslations() {
 
 document.addEventListener('DOMContentLoaded', function () {
   const recalcButton = document.getElementById('recalculateBtn');
-  recalcButton.addEventListener('click', function () {
-    // Update main form fields from the modify panel
-    document.getElementById('savingsAmount').value = document.getElementById('savingsAmountModify').value;
-    document.getElementById('taxRate').value = document.getElementById('taxRateModify').value;
-    document.getElementById('positionCost').value = document.getElementById('positionCostModify').value;
+  if (recalcButton) {
+    recalcButton.addEventListener('click', function () {
+      // Update main form fields from the modify panel
+      document.getElementById('savingsAmount').value = document.getElementById('savingsAmountModify').value;
+      document.getElementById('taxRate').value = document.getElementById('taxRateModify').value;
+      document.getElementById('positionCost').value = document.getElementById('positionCostModify').value;
 
-    // Recalculate results
-    showLoadingIndicator(recalcButton);
-    setTimeout(calculateResults, 600);
-  });
+      // Recalculate results
+      showLoadingIndicator(recalcButton);
+      setTimeout(calculateResults, 600);
+    });
+  }
   // Add event listener for form submission
   const simulationForm = document.getElementById('simulationForm');
   simulationForm.addEventListener('submit', function (e) {

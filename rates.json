@@ -1,10 +1,10 @@
 {
-    "updatedAt": "2026-02-06T10:00:00.000Z",
-    "rates": {
-        "Standard": 2.75,
-        "Plus": 2.75,
-        "Premium": 3.25,
-        "Metal": 3.75,
-        "Ultra": 4.00
-    }
+  "updatedAt": "2026-04-17T12:08:27.520Z",
+  "rates": {
+    "Standard": 2.75,
+    "Plus": 2.75,
+    "Premium": 3.25,
+    "Metal": 3.5,
+    "Ultra": 4
+  }
 }

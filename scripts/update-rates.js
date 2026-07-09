@@ -4,10 +4,29 @@ const path = require('path');
 
 async function scrapeRates() {
     console.log('Starting scraper...');
-    const browser = await puppeteer.launch({
+    
+    let launchOptions = {
         headless: "new",
         args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
+    };
+
+    if (process.platform === 'darwin') {
+        const possiblePaths = [
+            '/Users/michaljablonski/Library/Caches/ms-playwright/chromium-1228/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing',
+            '/Users/michaljablonski/Library/Caches/ms-playwright/chromium-1223/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing',
+            '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+            '/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary'
+        ];
+        for (const p of possiblePaths) {
+            if (fs.existsSync(p)) {
+                launchOptions.executablePath = p;
+                console.log(`Using Chrome executable at: ${p}`);
+                break;
+            }
+        }
+    }
+
+    const browser = await puppeteer.launch(launchOptions);
 
     const page = await browser.newPage();
 
@@ -20,11 +39,11 @@ async function scrapeRates() {
 
         // Default fallback rates
         let rates = {
-            Standard: 2.75,
-            Plus: 2.75,
-            Premium: 3.25,
-            Metal: 3.50,
-            Ultra: 3.90
+            Standard: 2.00,
+            Plus: 2.00,
+            Premium: 2.25,
+            Metal: 3.00,
+            Ultra: 3.25
         };
 
         console.log('Extracting savings rates using DOM traversal...');

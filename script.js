@@ -200,7 +200,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 async function fetchLatestRates() {
   // Use local file if on localhost, otherwise use the live GitHub Raw file
-  const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+  const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname) || window.location.protocol === 'file:';
   const RATES_URL = isLocal
     ? 'rates.json'
     : 'https://raw.githubusercontent.com/Jabolo/revo-savings/main/rates.json';
@@ -327,9 +327,9 @@ function calculateResults() {
   const plans = [
     { planName: 'Standard', cost: parseFloat(document.getElementById('costStandard').value), rate: parseFloat(document.getElementById('rateStandard').value) },
     { planName: 'Plus (19,99)', cost: parseFloat(document.getElementById('costPlus').value), rate: parseFloat(document.getElementById('ratePlus').value) },
-    { planName: 'Premium (33,33)', cost: parseFloat(document.getElementById('costPremium').value), rate: parseFloat(document.getElementById('ratePremium').value) },
+    { planName: 'Premium (33,99)', cost: parseFloat(document.getElementById('costPremium').value), rate: parseFloat(document.getElementById('ratePremium').value) },
     { planName: 'Metal (55,99)', cost: parseFloat(document.getElementById('costMetal').value), rate: parseFloat(document.getElementById('rateMetal').value) },
-    { planName: 'Ultra (210)', cost: parseFloat(document.getElementById('costUltra').value), rate: parseFloat(document.getElementById('rateUltra').value) }
+    { planName: 'Ultra (260)', cost: parseFloat(document.getElementById('costUltra').value), rate: parseFloat(document.getElementById('rateUltra').value) }
   ];
 
   let results = [];

@@ -23,10 +23,19 @@ The file is replaced atomically. A failed read never changes rate values or the
 last successful verification time. A successful unchanged check updates verification
 metadata intentionally; these commits are monitoring records, not rate changes.
 
-The UI distinguishes verified, expired (over 48 hours), failed, unverified,
-unavailable/default, and manually edited rates. It fetches the deployed same-origin
-file only. Loading a JSON file is not live verification. The official rate shown
-in a customer's Revolut app may differ from the general offer.
+The UI shows a quiet footer with the date, source and kind of the available
+evidence. Manual review is explicitly labelled as manual, separately from
+successful automated checks. Source failures remain in JSON metadata and CI;
+they do not occupy the calculator heading. Default and custom inputs are labelled.
+
+`sourceReview` records a manual reading of the published Polish PLN table, its
+review timestamp, the web reader's reported crawl date and the exact reviewed
+rates. On 6 November 2026 it showed Standard 2%, Plus 2%, Premium 2.25%, Metal 3%,
+Ultra 3.25%. The numeric values were unchanged; `updatedAt` and the automatic
+verification timestamps were preserved. This is a review of the best available
+official web reading, not a successful unattended fetch or a claimed live origin
+response. A subsequent automated change to rates makes the old manual snapshot
+inapplicable; a later failed attempt preserves the review and its original date.
 
 ## Source access limitation
 
@@ -35,8 +44,8 @@ On 6 November 2026 an ordinary request returned HTTP 403. This project does not
 solve challenges, disguise automation, rotate proxies, query private endpoints,
 or treat a cached search result as a fresh check. No independently accessible
 permitted machine-readable feed was established. Until access is allowed or an
-official feed is supplied, the site retains the old rates, shows the failure,
-and scheduled verification will remain red. A successful parser path is fixture
+official feed is supplied, the site retains the last rates and their evidence date, records the failure
+in metadata, and scheduled verification remains red. A successful parser path is fixture
 tested; the current source DOM cannot be validated through a blocked request.
 
 ## CI and recovery

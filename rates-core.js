@@ -19,6 +19,14 @@
   function validateData(data) {
     validateRates(data?.rates);
     if (!validDate(data.updatedAt)) throw new Error('Missing rate change timestamp.');
+    if (data.currency !== undefined && data.currency !== 'PLN') throw new Error('Only PLN rates are supported.');
+    if (data.sourceReview) {
+      const review = data.sourceReview;
+      validateRates(review.rates);
+      if (review.method !== 'manual-web-review' || !validDate(review.reviewedAt)
+        || review.sourceUrl !== 'https://www.revolut.com/pl-PL/our-pricing-plans/'
+        || !/^\d{4}-\d{2}-\d{2}$/.test(review.sourceCrawlDate)) throw new Error('Invalid manual source review.');
+    }
     const hasVerification = data.verificationStatus !== undefined;
     if (hasVerification) {
       if (!['ok', 'error'].includes(data.verificationStatus) || !validDate(data.lastAttemptAt)) {
@@ -37,6 +45,16 @@
     const age = now - Date.parse(data.lastVerifiedAt);
     return age >= 0 && age <= 48 * 60 * 60 * 1000 ? 'verified' : 'stale';
   }
+  function rateEvidence(data) {
+    if (!data) return { kind: 'default', date: null };
+    const review = data.sourceReview;
+    if (review && PLANS.every(plan => review.rates[plan] === data.rates[plan])
+      && (!data.lastVerifiedAt || Date.parse(review.reviewedAt) >= Date.parse(data.lastVerifiedAt))) {
+      return { kind: 'manual', date: review.reviewedAt, sourceUrl: review.sourceUrl };
+    }
+    if (data.lastVerifiedAt) return { kind: 'automatic', date: data.lastVerifiedAt, sourceUrl: data.sourceUrl };
+    return { kind: 'stored', date: data.updatedAt, sourceUrl: data.sourceUrl };
+  }
   function calculatePlan({ principal, annualRate, days, taxRate, monthlyPlanCost, annualPlanCost, positionCost, annualBilling, compound }) {
     if (![principal, annualRate, days, taxRate, monthlyPlanCost, positionCost].every(Number.isFinite)
       || principal < 0 || annualRate < 0 || annualRate > 100 || !Number.isInteger(days) || days < 0 || days > 36500
@@ -53,5 +71,5 @@
     if (!Object.values(result).every(Number.isFinite)) throw new Error('Simulation exceeds supported numeric range.');
     return result;
   }
-  return { PLANS, validateRates, validateData, freshness, calculatePlan };
+  return { PLANS, validateRates, validateData, freshness, rateEvidence, calculatePlan };
 });

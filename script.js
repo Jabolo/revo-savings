@@ -242,30 +242,28 @@ function renderPlanPricesStatus() {
 }
 
 function renderRatesStatus() {
-  const badge = document.getElementById('liveRatesBadge');
   const details = document.getElementById('ratesStatus');
-  if (!badge || !details) return;
-  const state = ratesEdited ? 'manual' : RevoRates.freshness(ratesData);
-  const labels = currentLang === 'pl'
-    ? { verified: 'Zweryfikowane', error: 'Weryfikacja nieudana', stale: 'Wymagają sprawdzenia', unverified: 'Niezweryfikowane', unavailable: 'Dane domyślne', manual: 'Własne stawki' }
-    : { verified: 'Verified', error: 'Verification failed', stale: 'Check rates', unverified: 'Unverified', unavailable: 'Default rates', manual: 'Custom rates' };
-  badge.className = `badge ${state === 'verified' ? 'bg-success' : 'bg-warning text-dark'} ms-2 fs-6 align-middle`;
-  badge.textContent = labels[state];
-  const formatDate = value => value ? new Date(value).toLocaleString(currentLang === 'pl' ? 'pl-PL' : 'en-GB', { timeZone: 'UTC' }) + ' UTC' : (currentLang === 'pl' ? 'brak potwierdzenia' : 'not confirmed');
+  if (!details) return;
   if (ratesEdited) {
-    details.textContent = currentLang === 'pl' ? 'Symulacja korzysta z ręcznie zmienionych stawek.' : 'The simulation uses your manually edited rates.';
-  } else if (ratesData) {
-    const failed = ratesData.verificationStatus === 'error';
-    const reason = /^http_\d{3}$/.test(ratesData.lastError || '') ? ` (HTTP ${ratesData.lastError.slice(5)})` : '';
-    details.textContent = currentLang === 'pl'
-      ? `${failed ? `Nie udało się sprawdzić źródła${reason}. Zachowano poprzednie stawki. ` : ''}Ostatnia skuteczna weryfikacja: ${formatDate(ratesData.lastVerifiedAt)}. Zapis/zmiana stawek: ${formatDate(ratesData.updatedAt)}.${ratesData.lastAttemptAt ? ` Ostatnia próba: ${formatDate(ratesData.lastAttemptAt)}.` : ''}`
-      : `${failed ? `Source verification failed${reason}. Previous rates retained. ` : ''}Last successful verification: ${formatDate(ratesData.lastVerifiedAt)}. Rates saved/changed: ${formatDate(ratesData.updatedAt)}.${ratesData.lastAttemptAt ? ` Last attempt: ${formatDate(ratesData.lastAttemptAt)}.` : ''}`;
-  } else {
-    details.textContent = currentLang === 'pl'
-      ? 'Nie potwierdzono świeżości danych. Używasz stawek domyślnych — sprawdź je w aplikacji Revolut.'
-      : 'Data freshness is unconfirmed. Default rates are in use — check them in the Revolut app.';
+    details.textContent = currentLang === 'pl' ? 'Symulacja korzysta z Twoich stawek.' : 'The simulation uses your custom rates.';
+    return;
   }
-  badge.title = details.textContent;
+  const evidence = RevoRates.rateEvidence(ratesData);
+  const date = evidence.date ? new Date(evidence.date).toLocaleDateString(currentLang === 'pl' ? 'pl-PL' : 'en-GB', { timeZone: 'UTC' }) : '';
+  if (evidence.kind === 'default') {
+    details.textContent = currentLang === 'pl' ? 'Stawki domyślne PLN. Sprawdź ofertę w aplikacji Revolut.' : 'Default PLN rates. Check the offer in the Revolut app.';
+    return;
+  }
+  const labels = currentLang === 'pl'
+    ? { manual: 'Ręczny odczyt', automatic: 'Odczyt źródła', stored: 'Zapis danych' }
+    : { manual: 'Manual review', automatic: 'Source checked', stored: 'Data saved' };
+  details.textContent = `PLN · ${labels[evidence.kind]}: ${date} · `;
+  const link = document.createElement('a');
+  link.href = 'https://www.revolut.com/pl-PL/our-pricing-plans/';
+  link.textContent = currentLang === 'pl' ? 'Źródło: Revolut' : 'Source: Revolut';
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  details.append(link);
 }
 
 async function fetchLatestRates() {

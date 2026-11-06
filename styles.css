@@ -278,10 +278,3 @@ footer a:hover {
   flex-grow: 1;
   min-width: 120px;
 }
-
-/* Status text must remain visible inside the gradient heading. */
-#liveRatesBadge {
-  -webkit-text-fill-color: currentColor;
-  white-space: normal;
-  line-height: 1.3;
-}

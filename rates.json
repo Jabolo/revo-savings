@@ -11,5 +11,19 @@
   "lastVerifiedAt": null,
   "verificationStatus": "error",
   "lastError": "http_403",
-  "sourceUrl": "https://www.revolut.com/pl-PL/our-pricing-plans/"
+  "sourceUrl": "https://www.revolut.com/pl-PL/our-pricing-plans/",
+  "currency": "PLN",
+  "sourceReview": {
+    "reviewedAt": "2026-11-06T18:12:18Z",
+    "method": "manual-web-review",
+    "sourceUrl": "https://www.revolut.com/pl-PL/our-pricing-plans/",
+    "sourceCrawlDate": "2026-11-06",
+    "rates": {
+      "Standard": 2,
+      "Plus": 2,
+      "Premium": 2.25,
+      "Metal": 3,
+      "Ultra": 3.25
+    }
+  }
 }

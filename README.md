@@ -10,6 +10,7 @@ Node.js 22+:
 npm ci
 npm test
 npm start          # one ordinary request to Revolut; nonzero exit on failure
+npm run review:rates -- --Standard 2 --Plus 2 --Premium 2.25 --Metal 3 --Ultra 3.25
 npm run build     # validate the retained data and prepare dist/
 python3 -m http.server 8764 --directory dist
 ```
@@ -45,24 +46,33 @@ solve challenges, disguise automation, rotate proxies, query private endpoints,
 or treat a cached search result as a fresh check. No independently accessible
 permitted machine-readable feed was established. Until access is allowed or an
 official feed is supplied, the site retains the last rates and their evidence date, records the failure
-in metadata, and scheduled verification remains red. A successful parser path is fixture
+in metadata, and direct runner verification fails when explicitly requested. A successful parser path is fixture
 tested; the current source DOM cannot be validated through a blocked request.
 
-## CI and recovery
+## CI, NAS rate monitor, and recovery
 
-The existing `Update Savings Rates` workflow:
+Because Revolut's Cloudflare protection blocks GitHub-hosted runner IPs with HTTP 403,
+daily rate monitoring runs in Hermes on NAS (`Revolut — strażnik stawek PLN`, scheduled
+daily at `07:35` Europe/Warsaw via `/opt/data/scripts/revo_rates_monitor.py` ->
+`/workspace/managed-tasks/scripts/run_revo_rates_monitor.py`). It compares the
+published PLN savings row against the live calculator's `rates.json`, writes its
+structured report to `/workspace/managed-tasks/revo-rates/latest.json`, and sends a
+WhatsApp alert **only** when a rate change (or repeated verification failure) is detected.
+When alerted, apply the reviewed rates on Mac with `npm run review:rates -- --Standard ...`
+and push to `main`.
+
+The existing `Update Savings Rates` GitHub Actions workflow:
 
 - tests every push/PR; production runs are serialized;
-- on schedule (06:00 UTC) or manual dispatch, attempts source verification and
-  commits the resulting verification metadata;
+- on manual dispatch (`workflow_dispatch`) with `verify_source: true`, optionally attempts
+  direct source verification and commits the resulting verification metadata;
 - validates retained data, builds an explicit static-file allowlist, then deploys
-  on **every** production run, including unchanged or failed source checks;
+  on **every** production run;
 - fails if the existing Firebase credential is missing or deployment fails;
 - compares production HTML, JS and JSON byte-for-byte with the build;
-- finally reports a failed source check as a workflow failure, even if hosting
-  deployment succeeded. Inspect these outcomes separately.
+- finally reports a failed source check as a workflow failure if `verify_source: true` was requested.
 
-A failed deployment is retried on the next scheduled/manual production run even
+A failed deployment is retried on the next push or manual production run even
 if rates are unchanged. To retry immediately, dispatch the existing workflow.
 Do not mint or broaden credentials to hide a failure. To roll back calculator
 code, revert the relevant code commit and push to main; preserve the current

@@ -1,9 +1,13 @@
 name: Update Savings Rates
 
 on:
-  schedule:
-    - cron: '0 6 * * *'
   workflow_dispatch:
+    inputs:
+      verify_source:
+        description: 'Attempt direct HTTP verification from GitHub runner'
+        required: false
+        default: false
+        type: boolean
   push:
     branches: [main]
   pull_request:
@@ -41,7 +45,7 @@ jobs:
 
       - name: Verify rates at source
         id: scraper
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        if: github.event_name == 'workflow_dispatch' && inputs.verify_source == true
         continue-on-error: true
         run: npm start
 
@@ -49,7 +53,7 @@ jobs:
         run: npm run build
 
       - name: Commit verification state
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        if: github.event_name == 'workflow_dispatch' && inputs.verify_source == true
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"

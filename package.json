@@ -5,6 +5,7 @@
   "description": "Revolut PLN savings calculator and transparent rate verification",
   "scripts": {
     "start": "node scripts/update-rates.js",
+    "review:rates": "node scripts/review-rates.js",
     "test": "node --test tests/*.test.js",
     "validate": "node scripts/validate-rates.js",
     "build": "node scripts/build.js"

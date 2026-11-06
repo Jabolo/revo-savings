@@ -1,17 +1,15 @@
 {
-    "name": "revolut-savings-scraper",
-    "version": "1.0.0",
-    "description": "Scraper to update Revolut savings rates",
-    "main": "scripts/update-rates.js",
-    "scripts": {
-        "start": "node scripts/update-rates.js",
-        "test": "echo \"Error: no test specified\" && exit 1"
-    },
-    "dependencies": {
-        "puppeteer": "^24.41.0",
-        "puppeteer-extra": "^3.3.6",
-        "puppeteer-extra-plugin-stealth": "^2.11.2"
-    },
-    "author": "",
-    "license": "ISC"
+  "name": "revolut-savings-scraper",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Revolut PLN savings calculator and transparent rate verification",
+  "scripts": {
+    "start": "node scripts/update-rates.js",
+    "test": "node --test tests/*.test.js",
+    "validate": "node scripts/validate-rates.js",
+    "build": "node scripts/build.js"
+  },
+  "engines": { "node": ">=22" },
+  "dependencies": { "cheerio": "1.2.0" },
+  "license": "ISC"
 }

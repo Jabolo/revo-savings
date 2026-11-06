@@ -6,5 +6,10 @@
     "Premium": 2.25,
     "Metal": 3,
     "Ultra": 3.25
-  }
+  },
+  "lastAttemptAt": "2026-11-06T09:45:19.978Z",
+  "lastVerifiedAt": null,
+  "verificationStatus": "error",
+  "lastError": "http_403",
+  "sourceUrl": "https://www.revolut.com/pl-PL/our-pricing-plans/"
 }

@@ -2,66 +2,90 @@ name: Update Savings Rates
 
 on:
   schedule:
-    # Run every day at 6:00 UTC
     - cron: '0 6 * * *'
-  workflow_dispatch: # Allow manual trigger
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
 
 permissions:
-  contents: write
+  contents: read
+
+concurrency:
+  group: revo-${{ github.event_name == 'pull_request' && github.ref || 'production' }}
+  cancel-in-progress: false
 
 jobs:
   update-rates:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name != 'pull_request' && 'main' || github.ref }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Run scraper
-        run: node scripts/update-rates.js
+      - name: Test
+        run: npm test
 
-      - name: Commit and push changes
-        id: commit
+      - name: Verify rates at source
+        id: scraper
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        continue-on-error: true
+        run: npm start
+
+      - name: Validate stored data and build site
+        run: npm run build
+
+      - name: Commit verification state
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          
-          # Check if rates.json was modified
-          if [[ -n $(git status --porcelain rates.json) ]]; then
+          if ! git diff --quiet -- rates.json; then
             git add rates.json
-            git commit -m "chore: update savings rates [skip ci]"
-            git push
-            echo "changes_pushed=true" >> $GITHUB_OUTPUT
-          else
-            echo "No changes to rates.json"
-            echo "changes_pushed=false" >> $GITHUB_OUTPUT
+            git commit -m "chore: record savings rate verification [skip ci]"
+            git push origin HEAD:main
           fi
 
-      - name: Check Firebase Secret
-        id: check_secret
+      - name: Require existing Firebase credential
+        if: github.event_name != 'pull_request'
         env:
           FIREBASE_SECRET: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_REVO_SAVINGS_CALCULATOR }}
         run: |
-          if [ -n "$FIREBASE_SECRET" ]; then
-            echo "has_secret=true" >> $GITHUB_OUTPUT
-          else
-            echo "has_secret=false" >> $GITHUB_OUTPUT
-            echo "Secret FIREBASE_SERVICE_ACCOUNT_REVO_SAVINGS_CALCULATOR is not set. Skipping Firebase deployment."
+          if [ -z "$FIREBASE_SECRET" ]; then
+            echo "::error::Required Firebase deployment credential is missing."
+            exit 1
           fi
 
+      # Every production run deploys, even with unchanged rates or a failed source
+      # check. Thus it publishes honest failure metadata and retries prior failures.
       - name: Deploy to Firebase Hosting
-        if: (steps.commit.outputs.changes_pushed == 'true' || github.event_name == 'workflow_dispatch') && steps.check_secret.outputs.has_secret == 'true'
+        if: github.event_name != 'pull_request'
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_REVO_SAVINGS_CALCULATOR }}'
           projectId: revo-savings-calculator
           channelId: live
+
+      - name: Verify deployed files
+        if: github.event_name != 'pull_request'
+        run: node scripts/verify-production.js
+
+      - name: Report source verification failure
+        if: always() && steps.scraper.outcome == 'failure'
+        run: |
+          echo "::error::Revolut rate verification failed. Last good rates retained; inspect deployment steps separately."
+          exit 1

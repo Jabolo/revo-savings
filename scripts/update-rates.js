@@ -1,202 +1,87 @@
-const puppeteer = require('puppeteer-extra');
-const StealthPlugin = require('puppeteer-extra-plugin-stealth');
-const fs = require('fs');
-const path = require('path');
-
-// Activate Puppeteer stealth plugin
-puppeteer.use(StealthPlugin());
-
+const fs = require('node:fs');
+const path = require('node:path');
+const { load } = require('cheerio');
+const { PLANS, validateRates, validateData } = require('../rates-core');
 const RATES_PATH = path.join(__dirname, '..', 'rates.json');
 const TARGET_URL = 'https://www.revolut.com/pl-PL/our-pricing-plans/';
 
-function loadExistingRates() {
-    try {
-        if (fs.existsSync(RATES_PATH)) {
-            return JSON.parse(fs.readFileSync(RATES_PATH, 'utf8'));
+function extractRates(html) {
+  const $ = load(html);
+  $('script, style, noscript').remove();
+  if (/just a moment|attention required|security verification/i.test($('title').text()) || $('#challenge-running, #challenge-stage').length) {
+    throw new Error('Source security challenge; no bypass attempted.');
+  }
+  // Only the explicitly labelled PLN savings row, never arbitrary percentages elsewhere.
+  const labels = new Set(['Sejfy na oszczędności (PLN)', 'Konta oszczędnościowe (PLN)', 'Konto oszczędnościowe (PLN)']);
+  const candidates = [];
+  $('*').each((_, el) => {
+    if ($(el).children().length || !labels.has($(el).text().replace(/\s+/g, ' ').trim())) return;
+    let row = $(el).parent();
+    while (row.length && !row.is('body, html')) {
+      const cells = row.children();
+      // Six distinct cells: the label followed by one value per named plan.
+      if (cells.length === 6 && labels.has(cells.first().find('*').addBack().filter((_, node) => labels.has($(node).text().replace(/\s+/g, ' ').trim())).first().text().replace(/\s+/g, ' ').trim())) {
+        const values = cells.slice(1).map((_, cell) => $(cell).text().trim()).get();
+        if (values.every(value => /^\d+(?:[.,]\d+)?\s*%\s*(?:p\.?\s*a\.?)?$/i.test(value))) {
+          const rates = Object.fromEntries(PLANS.map((plan, i) => [plan, parseFloat(values[i].replace(',', '.'))]));
+          validateRates(rates);
+          candidates.push(rates);
+          break;
         }
-    } catch (err) {
-        console.warn('Could not read existing rates.json:', err.message);
+      }
+      row = row.parent();
     }
-    return null;
+  });
+  // Require an explicit contiguous plan header in the expected column order.
+  const headers = $('*').toArray().some(el => {
+    const names = $(el).children().map((_, node) => $(node).text().trim()).get();
+    return names.length === 5 && names.every((name, i) => name === PLANS[i]);
+  });
+  if (!headers || !candidates.length || candidates.some(r => JSON.stringify(r) !== JSON.stringify(candidates[0]))) {
+    throw new Error('PLN savings table missing, ambiguous, or changed; manual verification required.');
+  }
+  return candidates[0];
 }
 
-function haveRatesChanged(existingRates, newRates) {
-    if (!existingRates) return true;
-    const plans = ['Standard', 'Plus', 'Premium', 'Metal', 'Ultra'];
-    return plans.some(plan => {
-        const oldVal = Number(existingRates[plan]);
-        const newVal = Number(newRates[plan]);
-        return isNaN(oldVal) || Math.abs(oldVal - newVal) > 0.001;
-    });
+async function fetchRates(fetchImpl = fetch) {
+  // One ordinary request. Do not solve challenges, spoof a browser, or use proxy fallbacks.
+  const response = await fetchImpl(TARGET_URL, {
+    headers: { 'User-Agent': 'RevoSavingsRateChecker/1.0 (+https://github.com/Jabolo/revo-savings)', Accept: 'text/html' },
+    signal: AbortSignal.timeout(30000), redirect: 'error'
+  });
+  if (!response.ok) {
+    const error = new Error(`Revolut returned HTTP ${response.status}; existing rates retained.`);
+    error.code = `http_${response.status}`;
+    throw error;
+  }
+  if (!response.headers.get('content-type')?.includes('text/html')) throw new Error('Unexpected source content type.');
+  return extractRates(await response.text());
 }
 
-function validateRates(rates) {
-    const plans = ['Standard', 'Plus', 'Premium', 'Metal', 'Ultra'];
-    for (const plan of plans) {
-        const val = rates[plan];
-        if (typeof val !== 'number' || isNaN(val) || val < 0.5 || val > 15.0) {
-            throw new Error(`Invalid rate extracted for plan ${plan}: ${val}`);
-        }
-    }
-    if (rates.Ultra < rates.Standard) {
-        throw new Error(`Sanity check failed: Ultra rate (${rates.Ultra}) < Standard rate (${rates.Standard})`);
-    }
+async function updateRates({ ratesPath = RATES_PATH, fetchImpl = fetch, now = new Date().toISOString() } = {}) {
+  // Refuse to replace a corrupt baseline, including on a failed request.
+  const existing = validateData(JSON.parse(fs.readFileSync(ratesPath, 'utf8')));
+  let output;
+  let failure;
+  try {
+    const rates = await fetchRates(fetchImpl);
+    const changed = PLANS.some(plan => existing.rates[plan] !== rates[plan]);
+    output = { ...existing, updatedAt: changed ? now : existing.updatedAt, rates,
+      lastAttemptAt: now, lastVerifiedAt: now, verificationStatus: 'ok', lastError: null, sourceUrl: TARGET_URL };
+    console.log(changed ? 'Source verified: PLN rates changed.' : 'Source verified: PLN rates unchanged.');
+  } catch (error) {
+    failure = error;
+    output = { ...existing, lastAttemptAt: now, lastVerifiedAt: existing.lastVerifiedAt || null,
+      verificationStatus: 'error', lastError: /^http_\d{3}$/.test(error.code || '') ? error.code : 'verification_failed', sourceUrl: TARGET_URL };
+    console.error(`Rate verification failed: ${error.message}`);
+  }
+  validateData(output);
+  const temporaryPath = `${ratesPath}.tmp`;
+  fs.writeFileSync(temporaryPath, JSON.stringify(output, null, 2) + '\n');
+  fs.renameSync(temporaryPath, ratesPath);
+  if (failure) throw failure;
+  return output;
 }
 
-async function scrapeRates() {
-    console.log('Starting stealth Revolut savings rates scraper...');
-
-    let launchOptions = {
-        headless: "new",
-        args: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage',
-            '--disable-blink-features=AutomationControlled',
-            '--window-size=1920,1080',
-            '--lang=pl-PL,pl'
-        ]
-    };
-
-    if (process.platform === 'darwin') {
-        const possiblePaths = [
-            '/Users/michaljablonski/Library/Caches/ms-playwright/chromium-1228/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing',
-            '/Users/michaljablonski/Library/Caches/ms-playwright/chromium-1223/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing',
-            '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-            '/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary'
-        ];
-        for (const p of possiblePaths) {
-            if (fs.existsSync(p)) {
-                launchOptions.executablePath = p;
-                console.log(`Using Chrome executable at: ${p}`);
-                break;
-            }
-        }
-    }
-
-    let browser = null;
-    try {
-        browser = await puppeteer.launch(launchOptions);
-        const page = await browser.newPage();
-
-        await page.setViewport({ width: 1920, height: 1080 });
-        await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36');
-
-        await page.setExtraHTTPHeaders({
-            'Accept-Language': 'pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7',
-            'sec-ch-ua': '"Chromium";v="130", "Google Chrome";v="130", "Not?A_Brand";v="99"',
-            'sec-ch-ua-mobile': '?0',
-            'sec-ch-ua-platform': '"macOS"'
-        });
-        console.log(`Navigating to ${TARGET_URL}...`);
-        const response = await page.goto(TARGET_URL, {
-            waitUntil: 'networkidle2',
-            timeout: 60000
-        });
-
-        const status = response ? response.status() : null;
-        const pageTitle = await page.title();
-        console.log(`Page HTTP status: ${status}, Title: "${pageTitle}"`);
-
-        // Check if blocked by Cloudflare challenge
-        const isChallenge = pageTitle.toLowerCase().includes('just a moment') ||
-                            pageTitle.toLowerCase().includes('attention required') ||
-                            pageTitle.toLowerCase().includes('cloudflare') ||
-                            await page.$('#challenge-running, #challenge-stage, .cf-turnstile, #cf-turnstile');
-
-        if (isChallenge) {
-            console.warn('⚠️ Cloudflare security challenge detected. Waiting up to 10s for stealth self-resolution...');
-            try {
-                await page.waitForNavigation({ timeout: 10000, waitUntil: 'networkidle2' });
-            } catch (_) {}
-        }
-
-        console.log('Attempting DOM extraction of savings rates...');
-        const parsedRates = await page.evaluate(() => {
-            const allElements = Array.from(document.querySelectorAll('*'));
-
-            const candidateLabels = [
-                'Sejfy na oszczędności (PLN)',
-                'Sejfy na oszczędności',
-                'Konta oszczędnościowe (PLN)',
-                'Konto oszczędnościowe (PLN)'
-            ];
-
-            let labelEl = null;
-            for (const label of candidateLabels) {
-                labelEl = allElements.find(el =>
-                    el.textContent &&
-                    el.textContent.trim().includes(label) &&
-                    el.children.length === 0
-                );
-                if (labelEl) break;
-            }
-
-            if (!labelEl) return null;
-
-            let rowEl = labelEl.parentElement;
-            while (rowEl && rowEl.tagName !== 'BODY') {
-                const siblings = rowEl.parentElement
-                    ? Array.from(rowEl.parentElement.children)
-                    : [];
-
-                const siblingTexts = siblings.map(s => (s.innerText || '').trim());
-                const allText = siblingTexts.join('\n');
-
-                const matches = [...allText.matchAll(/(\d+(?:[.,]\d+)?)%/g)]
-                    .map(m => parseFloat(m[1].replace(',', '.')))
-                    .filter(r => !isNaN(r) && r >= 0.5 && r <= 15.0);
-
-                if (matches.length >= 5) {
-                    return matches.slice(0, 5);
-                }
-
-                rowEl = rowEl.parentElement;
-            }
-
-            return null;
-        });
-
-        const existingData = loadExistingRates();
-        const existingRates = existingData?.rates || null;
-
-        if (parsedRates && parsedRates.length >= 5) {
-            const extractedRates = {
-                Standard: parsedRates[0],
-                Plus:     parsedRates[1],
-                Premium:  parsedRates[2],
-                Metal:    parsedRates[3],
-                Ultra:    parsedRates[4]
-            };
-
-            validateRates(extractedRates);
-            console.log('✅ Successfully extracted and validated 5 live rates from Revolut:', extractedRates);
-
-            if (haveRatesChanged(existingRates, extractedRates)) {
-                const output = {
-                    updatedAt: new Date().toISOString(),
-                    rates: extractedRates
-                };
-                fs.writeFileSync(RATES_PATH, JSON.stringify(output, null, 2) + '\n');
-                console.log(`🚀 Rates have changed! Updated ${RATES_PATH}`);
-            } else {
-                console.log('ℹ️ Rates are unchanged. Preserving rates.json (skipping write to prevent empty commits).');
-            }
-        } else {
-            console.warn('⚠️ Could not extract live rates (page blocked by Cloudflare or DOM structure changed).');
-            console.warn('🔒 PRESERVING existing rates.json without modification.');
-            if (existingRates) {
-                console.log('Current stored rates remain active:', existingRates);
-            }
-        }
-
-    } catch (error) {
-        console.error('Scraping encountered an error:', error.message || error);
-    } finally {
-        if (browser) {
-            await browser.close();
-        }
-    }
-}
-
-scrapeRates();
+if (require.main === module) updateRates().catch(() => { process.exitCode = 1; });
+module.exports = { extractRates, fetchRates, updateRates, TARGET_URL };

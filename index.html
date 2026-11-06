@@ -27,8 +27,10 @@
       </ul>
     </div>
     <h1 class="mb-4 text-center">
-      <i class="fas fa-chart-line me-2"></i><span data-i18n="heading">Symulacja Zysków z Oszczędności</span><span id="liveRatesBadge"></span>
+      <i class="fas fa-chart-line me-2"></i><span data-i18n="heading">Symulacja Zysków z Oszczędności</span><span id="liveRatesBadge" class="badge bg-warning text-dark ms-2 fs-6 align-middle">Niezweryfikowane</span>
     </h1>
+
+    <p id="ratesStatus" class="text-center small text-muted" role="status" aria-live="polite">Nie potwierdzono świeżości danych. Sprawdź stawki w aplikacji Revolut.</p>
 
     <!-- Description at the top -->
     <div class="mb-4 text-center">
@@ -39,6 +41,8 @@
         <br>Domyślne ustawienia odpowiadają ofercie Revo z 1-dniowym naliczaniem odsetek.
       </p>
     </div>
+
+    <p class="small text-muted" data-i18n="assumptions"></p>
 
     <!-- Main Input Fields -->
     <div id="simulationSection" class="card mb-4">
@@ -63,7 +67,7 @@
               <i class="fas fa-percent me-2 text-primary"></i>Podatek od zysków (%):
             </label>
             <div class="col-sm-8">
-              <input type="number" class="form-control" id="taxRate" value="19" step="0.1" min="0" required>
+              <input type="number" class="form-control" id="taxRate" value="19" step="0.1" min="0" max="100" required>
             </div>
           </div>
           <div class="mb-4 row">
@@ -81,7 +85,7 @@
             </label>
             <div class="col-sm-8">
               <div class="d-flex align-items-center gap-2 flex-wrap">
-                <input type="number" class="form-control" id="lockPeriod" value="365" min="0" required>
+                <input type="number" class="form-control" id="lockPeriod" value="365" min="0" max="36500" step="1" required>
                 <input type="range" class="form-range flex-grow-1" id="lockRange" min="0" max="365" step="1">
               </div>
             </div>
@@ -224,7 +228,7 @@
                 <label for="taxRateModify" class="col-sm-4 col-form-label" data-i18n="taxRateLabelMod">Podatek od zysków
                   (%):</label>
                 <div class="col-sm-8">
-                  <input type="number" class="form-control" id="taxRateModify" value="19" step="0.1" min="0">
+                  <input type="number" class="form-control" id="taxRateModify" value="19" step="0.1" min="0" max="100">
                 </div>
               </div>
               <div class="mb-3 row">
@@ -240,7 +244,7 @@
                   (dni):</label>
                 <div class="col-sm-8">
                   <div class="d-flex align-items-center gap-2 flex-wrap">
-                    <input type="number" class="form-control" id="lockPeriodModify" value="365" min="0">
+                    <input type="number" class="form-control" id="lockPeriodModify" value="365" min="0" max="36500" step="1">
                     <input type="range" class="form-range flex-grow-1" id="lockModifyRange" min="0" max="365" step="1">
                   </div>
                 </div>
@@ -330,6 +334,7 @@
   <!-- Bootstrap Bundle JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <!-- External JS -->
+  <script src="rates-core.js"></script>
   <script src="script.js"></script>
 </body>
 

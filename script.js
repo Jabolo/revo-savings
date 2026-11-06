@@ -10,7 +10,7 @@ const translations = {
     lockPeriodLabel: '<i class="fas fa-calendar-alt me-2 text-primary"></i>Czas lokaty (dni):',
     billingLabel: 'Okres rozliczenia:',
     billingMonthly: 'Miesi\u0119cznie',
-    billingAnnual: 'Rocznie (2 mies. gratis)',
+    billingAnnual: 'Rocznie (szacunek: 10 opłat)' ,
 
     showPlans: 'Pokaż szczegóły planów oszczędności',
     plansHeader: 'Plany Oszczędności w Revo',
@@ -43,7 +43,8 @@ const translations = {
     interestRate: 'Oprocentowanie',
     bestPlan: (plan, profit) => `<i class="fas fa-trophy me-2"></i>Najlepszy plan: <strong>${plan}</strong> (Zysk końcowy: <strong>${profit} PLN</strong>)`,
     allLosses: (plan, loss) => `<i class="fas fa-exclamation-triangle me-2"></i>Uwaga: Wszystkie plany generują straty. Najlepsza opcja: <strong>${plan}</strong> (Strata: <strong>${loss} PLN</strong>)`,
-    invalidInput: 'Proszę wprowadzić poprawne liczby.'
+    assumptions: 'Symulacja przy stałej stopie i roku 365 dni, bez zaokrągleń dziennych i opóźnienia pierwszej wpłaty. Podatek odejmowany od łącznych odsetek. Koszty proporcjonalne do dni; wariant roczny szacowany jako 10 opłat miesięcznych za rok. Sprawdź cenę planu i własną stawkę w aplikacji.',
+    invalidInput: 'Sprawdź liczby: dni 0–36500 (całkowite), podatek 0–100%, pozostałe wartości nieujemne; oprocentowanie do 100%.'
   },
   en: {
     pageTitle: 'Savings Profit Simulation | Revolut',
@@ -55,7 +56,7 @@ const translations = {
     lockPeriodLabel: '<i class="fas fa-calendar-alt me-2 text-primary"></i>Lock duration (days):',
     billingLabel: 'Billing period:',
     billingMonthly: 'Monthly',
-    billingAnnual: 'Annually (2 months free)',
+    billingAnnual: 'Annually (estimate: 10 fees)' ,
     showPlans: 'Show savings plan details',
     plansHeader: 'Revo Savings Plans',
     planHeader: 'Plan',
@@ -87,11 +88,14 @@ const translations = {
     interestRate: 'Interest rate',
     bestPlan: (plan, profit) => `<i class="fas fa-trophy me-2"></i>Best plan: <strong>${plan}</strong> (Final profit: <strong>${profit} PLN</strong>)`,
     allLosses: (plan, loss) => `<i class="fas fa-exclamation-triangle me-2"></i>Warning: All plans yield losses. Best option: <strong>${plan}</strong> (Loss: <strong>${loss} PLN</strong>)`,
-    invalidInput: 'Please enter valid numbers.'
+    assumptions: 'Estimate with a fixed rate and a 365-day year, without daily rounding or initial deposit settlement delay. Tax is deducted from total interest. Costs are prorated by day; annual billing is estimated as 10 monthly fees per year. Check your plan price and personal rate in the app.',
+    invalidInput: 'Check numbers: whole days 0–36500, tax 0–100%, other values non-negative; interest up to 100%.'
   }
 };
 
-let currentLang = localStorage.getItem('lang') || 'pl';
+let currentLang = ['pl', 'en'].includes(localStorage.getItem('lang')) ? localStorage.getItem('lang') : 'pl';
+let ratesData = null;
+let ratesEdited = false;
 
 function applyTranslations() {
   const t = translations[currentLang];
@@ -108,6 +112,7 @@ function applyTranslations() {
   });
   document.getElementById('langDropdown').textContent = currentLang.toUpperCase();
   updateGrossHeader();
+  renderRatesStatus();
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -194,69 +199,62 @@ document.addEventListener('DOMContentLoaded', function () {
 
   applyTranslations();
 
-  // Fetch latest rates from GitHub (fallback to default if fails)
+  RevoRates.PLANS.forEach(plan => {
+    document.getElementById(`rate${plan}`).addEventListener('input', () => {
+      ratesEdited = true;
+      renderRatesStatus();
+      triggerAutoCalc();
+    });
+    document.getElementById(`cost${plan}`).addEventListener('input', triggerAutoCalc);
+  });
   fetchLatestRates();
+  setInterval(renderRatesStatus, 60000);
 });
 
-async function fetchLatestRates() {
-  const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname) || window.location.protocol === 'file:';
-  const localUrl = `rates.json?_t=${Date.now()}`;
-  const githubUrl = `https://raw.githubusercontent.com/Jabolo/revo-savings/main/rates.json?_t=${Date.now()}`;
-
-  let data = null;
-  let source = '';
-
-  // 1. Try local rates.json
-  try {
-    const response = await fetch(localUrl);
-    if (response.ok) {
-      data = await response.json();
-      source = isLocal ? 'local file' : 'same-origin rates.json';
-    }
-  } catch (err) {
-    console.warn('Could not fetch local rates.json:', err);
-  }
-
-  // 2. If not local and local file failed or missing, try GitHub Raw fallback
-  if (!data && !isLocal) {
-    try {
-      const response = await fetch(githubUrl);
-      if (response.ok) {
-        data = await response.json();
-        source = 'GitHub Raw';
-      }
-    } catch (err) {
-      console.warn('Could not fetch GitHub Raw rates.json:', err);
-    }
-  }
-
-  if (data && data.rates) {
-    console.log(`Rates fetched successfully from ${source}:`, data);
-
-    // Update fields with fetched data
-    if (data.rates.Standard) document.getElementById('rateStandard').value = Number(data.rates.Standard).toFixed(2);
-    if (data.rates.Plus) document.getElementById('ratePlus').value = Number(data.rates.Plus).toFixed(2);
-    if (data.rates.Premium) document.getElementById('ratePremium').value = Number(data.rates.Premium).toFixed(2);
-    if (data.rates.Metal) document.getElementById('rateMetal').value = Number(data.rates.Metal).toFixed(2);
-    if (data.rates.Ultra) document.getElementById('rateUltra').value = Number(data.rates.Ultra).toFixed(2);
-
-    // Optional: Add/update a visual indicator that rates are live
-    const titleElement = document.querySelector('h1.text-center');
-    if (titleElement) {
-      let badge = document.getElementById('liveRatesBadge');
-      if (!badge) {
-        badge = document.createElement('span');
-        badge.id = 'liveRatesBadge';
-        badge.className = 'badge bg-success ms-2 fs-6 align-middle';
-        titleElement.appendChild(badge);
-      }
-      badge.innerHTML = '<i class="fas fa-check-circle me-1"></i>Live';
-      const formattedDate = data.updatedAt ? new Date(data.updatedAt).toLocaleDateString() : '';
-      badge.title = formattedDate ? `Rates updated: ${formattedDate}` : 'Rates up to date';
-    }
+function renderRatesStatus() {
+  const badge = document.getElementById('liveRatesBadge');
+  const details = document.getElementById('ratesStatus');
+  if (!badge || !details) return;
+  const state = ratesEdited ? 'manual' : RevoRates.freshness(ratesData);
+  const labels = currentLang === 'pl'
+    ? { verified: 'Zweryfikowane', error: 'Weryfikacja nieudana', stale: 'Wymagają sprawdzenia', unverified: 'Niezweryfikowane', unavailable: 'Dane domyślne', manual: 'Własne stawki' }
+    : { verified: 'Verified', error: 'Verification failed', stale: 'Check rates', unverified: 'Unverified', unavailable: 'Default rates', manual: 'Custom rates' };
+  badge.className = `badge ${state === 'verified' ? 'bg-success' : 'bg-warning text-dark'} ms-2 fs-6 align-middle`;
+  badge.textContent = labels[state];
+  const formatDate = value => value ? new Date(value).toLocaleString(currentLang === 'pl' ? 'pl-PL' : 'en-GB', { timeZone: 'UTC' }) + ' UTC' : (currentLang === 'pl' ? 'brak potwierdzenia' : 'not confirmed');
+  if (ratesEdited) {
+    details.textContent = currentLang === 'pl' ? 'Symulacja korzysta z ręcznie zmienionych stawek.' : 'The simulation uses your manually edited rates.';
+  } else if (ratesData) {
+    const failed = ratesData.verificationStatus === 'error';
+    const reason = /^http_\d{3}$/.test(ratesData.lastError || '') ? ` (HTTP ${ratesData.lastError.slice(5)})` : '';
+    details.textContent = currentLang === 'pl'
+      ? `${failed ? `Nie udało się sprawdzić źródła${reason}. Zachowano poprzednie stawki. ` : ''}Ostatnia skuteczna weryfikacja: ${formatDate(ratesData.lastVerifiedAt)}. Zapis/zmiana stawek: ${formatDate(ratesData.updatedAt)}.${ratesData.lastAttemptAt ? ` Ostatnia próba: ${formatDate(ratesData.lastAttemptAt)}.` : ''}`
+      : `${failed ? `Source verification failed${reason}. Previous rates retained. ` : ''}Last successful verification: ${formatDate(ratesData.lastVerifiedAt)}. Rates saved/changed: ${formatDate(ratesData.updatedAt)}.${ratesData.lastAttemptAt ? ` Last attempt: ${formatDate(ratesData.lastAttemptAt)}.` : ''}`;
   } else {
-    console.log('Using default rates (fetch failed or unavailable).');
+    details.textContent = currentLang === 'pl'
+      ? 'Nie potwierdzono świeżości danych. Używasz stawek domyślnych — sprawdź je w aplikacji Revolut.'
+      : 'Data freshness is unconfirmed. Default rates are in use — check them in the Revolut app.';
   }
+  badge.title = details.textContent;
+}
+
+async function fetchLatestRates() {
+  try {
+    const response = await fetch('rates.json', { cache: 'no-store', signal: AbortSignal.timeout(10000) });
+    if (!response.ok) throw new Error(`Rates file: HTTP ${response.status}`);
+    const data = RevoRates.validateData(await response.json());
+    ratesData = data;
+    // A slow response must not overwrite a user's custom inputs.
+    if (!ratesEdited) {
+      RevoRates.PLANS.forEach(plan => {
+        document.getElementById(`rate${plan}`).value = data.rates[plan].toFixed(2);
+      });
+      triggerAutoCalc();
+    }
+  } catch (error) {
+    console.warn('Stored rates unavailable:', error.message);
+  }
+  renderRatesStatus();
 }
 
 let loadingButton = null;
@@ -272,15 +270,6 @@ function hideLoadingIndicator() {
   button.innerHTML = translations[currentLang].calcButton;
   button.disabled = false;
   loadingButton = null;
-}
-
-// Calculate interest compounded daily without deducting tax until the end
-// principal - starting amount
-// annualRate - yearly interest rate in percent
-// days - number of days the money is saved
-function compoundInterestDaily(principal, annualRate, days) {
-  const dailyRate = annualRate / 100 / 365;
-  return principal * (Math.pow(1 + dailyRate, days) - 1);
 }
 
 function updateGrossHeader() {
@@ -307,28 +296,22 @@ function calculateResults() {
   let positionCost = parseFloat(positionCostInput.value);
   let lockPeriod = parseFloat(lockPeriodInput.value);
 
-  // Replace NaN with sensible defaults
-  if (isNaN(savings)) savings = 0;
-  if (isNaN(taxRate)) taxRate = 0;
-  if (isNaN(positionCost)) positionCost = 0; // allow temporarily blank "-" input
-  if (isNaN(lockPeriod)) lockPeriod = 0;
-
   // Basic validation & user feedback
   let invalid = false;
   [savingsInput, taxRateInput, positionCostInput, lockPeriodInput].forEach(el => el.classList.remove('is-invalid'));
-  if (isNaN(parseFloat(savingsInput.value)) || savings < 0) {
+  if (!Number.isFinite(savings) || savings < 0) {
     savingsInput.classList.add('is-invalid');
     invalid = true;
   }
-  if (isNaN(parseFloat(taxRateInput.value)) || taxRate < 0) {
+  if (!Number.isFinite(taxRate) || taxRate < 0 || taxRate > 100) {
     taxRateInput.classList.add('is-invalid');
     invalid = true;
   }
-  if (isNaN(parseFloat(positionCostInput.value)) || positionCost < 0) {
+  if (!Number.isFinite(positionCost) || positionCost < 0) {
     positionCostInput.classList.add('is-invalid');
     invalid = true;
   }
-  if (isNaN(parseFloat(lockPeriodInput.value)) || lockPeriod < 0) {
+  if (!Number.isInteger(lockPeriod) || lockPeriod < 0 || lockPeriod > 36500) {
     lockPeriodInput.classList.add('is-invalid');
     invalid = true;
   }
@@ -344,7 +327,6 @@ function calculateResults() {
 
   const compound = document.getElementById('useCompoundInterest').checked;
   const billingOption = document.querySelector('input[name="billingOption"]:checked').value;
-  const billingFactor = billingOption === 'annual' ? (10 / 12) : 1;
 
   // Pobierz dane dla poszczególnych planów
   const plans = [
@@ -355,30 +337,20 @@ function calculateResults() {
     { planName: 'Ultra (260)', cost: parseFloat(document.getElementById('costUltra').value), rate: parseFloat(document.getElementById('rateUltra').value) }
   ];
 
-  let results = [];
-
-  // Obliczenia dla każdego planu
-  plans.forEach(function (plan) {
-    const discountedPlanCost = plan.cost * billingFactor;
-    const totalMonthlyCost = discountedPlanCost + positionCost; // includes position cost
-    const periodCost = totalMonthlyCost * (lockPeriod / 30);
-    const grossInterest = compound
-      ? compoundInterestDaily(savings, plan.rate, lockPeriod)
-      : savings * (plan.rate / 100) * (lockPeriod / 365);
-    // Tax is deducted once after the entire interest is calculated
-    const netInterest = grossInterest * (1 - taxRate / 100);
-    const profitAfterCost = netInterest - periodCost;
-
-    results.push({
-      plan: plan.planName,
-      monthlyCost: totalMonthlyCost.toFixed(2),
-      periodCost: periodCost.toFixed(2),
-      rate: plan.rate.toFixed(2),
-      grossInterest: grossInterest.toFixed(2),
-      netInterest: netInterest.toFixed(2),
-      profitAfterCost: profitAfterCost.toFixed(2)
+  let results;
+  try {
+    results = plans.map(plan => {
+      const result = RevoRates.calculatePlan({ principal: savings, annualRate: plan.rate, days: lockPeriod,
+        taxRate, monthlyPlanCost: plan.cost, positionCost, annualBilling: billingOption === 'annual', compound });
+      return { plan: plan.planName, rate: plan.rate.toFixed(2),
+        ...Object.fromEntries(Object.entries(result).map(([key, value]) => [key, value.toFixed(2)])) };
     });
-  });
+  } catch (error) {
+    errorEl.textContent = translations[currentLang].invalidInput;
+    errorEl.classList.remove('d-none');
+    hideLoadingIndicator();
+    return;
+  }
 
   // Wyznacz najlepszy plan (najwyższy zysk końcowy)
   let bestPlan = results[0];

@@ -14,12 +14,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'npm'
 
       - name: Install dependencies
@@ -34,13 +34,34 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           
-          # Check if there are changes
-          if [[ `git status --porcelain` ]]; then
+          # Check if rates.json was modified
+          if [[ -n $(git status --porcelain rates.json) ]]; then
             git add rates.json
             git commit -m "chore: update savings rates [skip ci]"
             git push
             echo "changes_pushed=true" >> $GITHUB_OUTPUT
           else
-            echo "No changes to commit"
+            echo "No changes to rates.json"
             echo "changes_pushed=false" >> $GITHUB_OUTPUT
           fi
+
+      - name: Check Firebase Secret
+        id: check_secret
+        env:
+          FIREBASE_SECRET: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_REVO_SAVINGS_CALCULATOR }}
+        run: |
+          if [ -n "$FIREBASE_SECRET" ]; then
+            echo "has_secret=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_secret=false" >> $GITHUB_OUTPUT
+            echo "Secret FIREBASE_SERVICE_ACCOUNT_REVO_SAVINGS_CALCULATOR is not set. Skipping Firebase deployment."
+          fi
+
+      - name: Deploy to Firebase Hosting
+        if: (steps.commit.outputs.changes_pushed == 'true' || github.event_name == 'workflow_dispatch') && steps.check_secret.outputs.has_secret == 'true'
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_REVO_SAVINGS_CALCULATOR }}'
+          projectId: revo-savings-calculator
+          channelId: live

@@ -38,7 +38,7 @@ const translations = {
     downloadCsv: '<i class="fas fa-download me-2"></i>Pobierz CSV',
     comparePlans: '<i class="fas fa-link me-1"></i>Porównaj plany:',
     officialComparison: 'Oficjalne porównanie <i class="fas fa-external-link-alt ms-1 fa-xs"></i>',
-    footerNote: '© 2025 Kalkulator Revo Savings',
+    footerNote: '© 2026 Kalkulator Revo Savings',
     chartLabel: 'Zysk końcowy (PLN)',
     interestRate: 'Oprocentowanie',
     bestPlan: (plan, profit) => `<i class="fas fa-trophy me-2"></i>Najlepszy plan: <strong>${plan}</strong> (Zysk końcowy: <strong>${profit} PLN</strong>)`,
@@ -82,7 +82,7 @@ const translations = {
     downloadCsv: '<i class="fas fa-download me-2"></i>Download CSV',
     comparePlans: '<i class="fas fa-link me-1"></i>Compare plans:',
     officialComparison: 'Official comparison <i class="fas fa-external-link-alt ms-1 fa-xs"></i>',
-    footerNote: '© 2025 Revo Savings Calculator',
+    footerNote: '© 2026 Revo Savings Calculator',
     chartLabel: 'Final profit (PLN)',
     interestRate: 'Interest rate',
     bestPlan: (plan, profit) => `<i class="fas fa-trophy me-2"></i>Best plan: <strong>${plan}</strong> (Final profit: <strong>${profit} PLN</strong>)`,
@@ -199,40 +199,63 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 async function fetchLatestRates() {
-  // Use local file if on localhost, otherwise use the live GitHub Raw file
   const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname) || window.location.protocol === 'file:';
-  const RATES_URL = isLocal
-    ? 'rates.json'
-    : 'https://raw.githubusercontent.com/Jabolo/revo-savings/main/rates.json';
+  const localUrl = `rates.json?_t=${Date.now()}`;
+  const githubUrl = `https://raw.githubusercontent.com/Jabolo/revo-savings/main/rates.json?_t=${Date.now()}`;
 
+  let data = null;
+  let source = '';
+
+  // 1. Try local rates.json
   try {
-    const response = await fetch(RATES_URL);
-    if (!response.ok) throw new Error(`Network response was not ok (${response.status})`);
+    const response = await fetch(localUrl);
+    if (response.ok) {
+      data = await response.json();
+      source = isLocal ? 'local file' : 'same-origin rates.json';
+    }
+  } catch (err) {
+    console.warn('Could not fetch local rates.json:', err);
+  }
 
-    const data = await response.json();
-    console.log(`Rates fetched successfully from ${isLocal ? 'local file' : 'GitHub'}:`, data);
+  // 2. If not local and local file failed or missing, try GitHub Raw fallback
+  if (!data && !isLocal) {
+    try {
+      const response = await fetch(githubUrl);
+      if (response.ok) {
+        data = await response.json();
+        source = 'GitHub Raw';
+      }
+    } catch (err) {
+      console.warn('Could not fetch GitHub Raw rates.json:', err);
+    }
+  }
 
-    if (data && data.rates) {
-      // Update fields with fetched data
-      if (data.rates.Standard) document.getElementById('rateStandard').value = data.rates.Standard.toFixed(2);
-      if (data.rates.Plus) document.getElementById('ratePlus').value = data.rates.Plus.toFixed(2);
-      if (data.rates.Premium) document.getElementById('ratePremium').value = data.rates.Premium.toFixed(2);
-      if (data.rates.Metal) document.getElementById('rateMetal').value = data.rates.Metal.toFixed(2);
-      if (data.rates.Ultra) document.getElementById('rateUltra').value = data.rates.Ultra.toFixed(2);
+  if (data && data.rates) {
+    console.log(`Rates fetched successfully from ${source}:`, data);
 
-      // Optional: Add a visual indicator that rates are live
-      const titleElement = document.querySelector('h1.text-center');
-      if (titleElement) {
-        const badge = document.createElement('span');
+    // Update fields with fetched data
+    if (data.rates.Standard) document.getElementById('rateStandard').value = Number(data.rates.Standard).toFixed(2);
+    if (data.rates.Plus) document.getElementById('ratePlus').value = Number(data.rates.Plus).toFixed(2);
+    if (data.rates.Premium) document.getElementById('ratePremium').value = Number(data.rates.Premium).toFixed(2);
+    if (data.rates.Metal) document.getElementById('rateMetal').value = Number(data.rates.Metal).toFixed(2);
+    if (data.rates.Ultra) document.getElementById('rateUltra').value = Number(data.rates.Ultra).toFixed(2);
+
+    // Optional: Add/update a visual indicator that rates are live
+    const titleElement = document.querySelector('h1.text-center');
+    if (titleElement) {
+      let badge = document.getElementById('liveRatesBadge');
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.id = 'liveRatesBadge';
         badge.className = 'badge bg-success ms-2 fs-6 align-middle';
-        badge.innerHTML = '<i class="fas fa-check-circle me-1"></i>Live';
-        badge.title = `Rates updated: ${new Date(data.updatedAt).toLocaleDateString()}`;
         titleElement.appendChild(badge);
       }
+      badge.innerHTML = '<i class="fas fa-check-circle me-1"></i>Live';
+      const formattedDate = data.updatedAt ? new Date(data.updatedAt).toLocaleDateString() : '';
+      badge.title = formattedDate ? `Rates updated: ${formattedDate}` : 'Rates up to date';
     }
-  } catch (error) {
-    console.log('Using default rates (fetch failed):', error);
-    // Silent fail - the app will just use the hardcoded values (which we recently updated)
+  } else {
+    console.log('Using default rates (fetch failed or unavailable).');
   }
 }
 

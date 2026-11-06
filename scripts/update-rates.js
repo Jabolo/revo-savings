@@ -1,13 +1,61 @@
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 const fs = require('fs');
 const path = require('path');
 
+// Activate Puppeteer stealth plugin
+puppeteer.use(StealthPlugin());
+
+const RATES_PATH = path.join(__dirname, '..', 'rates.json');
+const TARGET_URL = 'https://www.revolut.com/pl-PL/our-pricing-plans/';
+
+function loadExistingRates() {
+    try {
+        if (fs.existsSync(RATES_PATH)) {
+            return JSON.parse(fs.readFileSync(RATES_PATH, 'utf8'));
+        }
+    } catch (err) {
+        console.warn('Could not read existing rates.json:', err.message);
+    }
+    return null;
+}
+
+function haveRatesChanged(existingRates, newRates) {
+    if (!existingRates) return true;
+    const plans = ['Standard', 'Plus', 'Premium', 'Metal', 'Ultra'];
+    return plans.some(plan => {
+        const oldVal = Number(existingRates[plan]);
+        const newVal = Number(newRates[plan]);
+        return isNaN(oldVal) || Math.abs(oldVal - newVal) > 0.001;
+    });
+}
+
+function validateRates(rates) {
+    const plans = ['Standard', 'Plus', 'Premium', 'Metal', 'Ultra'];
+    for (const plan of plans) {
+        const val = rates[plan];
+        if (typeof val !== 'number' || isNaN(val) || val < 0.5 || val > 15.0) {
+            throw new Error(`Invalid rate extracted for plan ${plan}: ${val}`);
+        }
+    }
+    if (rates.Ultra < rates.Standard) {
+        throw new Error(`Sanity check failed: Ultra rate (${rates.Ultra}) < Standard rate (${rates.Standard})`);
+    }
+}
+
 async function scrapeRates() {
-    console.log('Starting scraper...');
-    
+    console.log('Starting stealth Revolut savings rates scraper...');
+
     let launchOptions = {
         headless: "new",
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-blink-features=AutomationControlled',
+            '--window-size=1920,1080',
+            '--lang=pl-PL,pl'
+        ]
     };
 
     if (process.platform === 'darwin') {
@@ -26,61 +74,78 @@ async function scrapeRates() {
         }
     }
 
-    const browser = await puppeteer.launch(launchOptions);
-
-    const page = await browser.newPage();
-
-    // Set a realistic user agent to avoid basic blocks
-    await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
-
+    let browser = null;
     try {
-        console.log('Navigating to Revolut Pricing Plans page...');
-        await page.goto('https://www.revolut.com/pl-PL/our-pricing-plans/', { waitUntil: 'networkidle2', timeout: 60000 });
+        browser = await puppeteer.launch(launchOptions);
+        const page = await browser.newPage();
 
-        // Default fallback rates
-        let rates = {
-            Standard: 2.00,
-            Plus: 2.00,
-            Premium: 2.25,
-            Metal: 3.00,
-            Ultra: 3.25
-        };
+        await page.setViewport({ width: 1920, height: 1080 });
+        await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36');
 
-        console.log('Extracting savings rates using DOM traversal...');
+        await page.setExtraHTTPHeaders({
+            'Accept-Language': 'pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7',
+            'sec-ch-ua': '"Chromium";v="130", "Google Chrome";v="130", "Not?A_Brand";v="99"',
+            'sec-ch-ua-mobile': '?0',
+            'sec-ch-ua-platform': '"macOS"'
+        });
+        console.log(`Navigating to ${TARGET_URL}...`);
+        const response = await page.goto(TARGET_URL, {
+            waitUntil: 'networkidle2',
+            timeout: 60000
+        });
+
+        const status = response ? response.status() : null;
+        const pageTitle = await page.title();
+        console.log(`Page HTTP status: ${status}, Title: "${pageTitle}"`);
+
+        // Check if blocked by Cloudflare challenge
+        const isChallenge = pageTitle.toLowerCase().includes('just a moment') ||
+                            pageTitle.toLowerCase().includes('attention required') ||
+                            pageTitle.toLowerCase().includes('cloudflare') ||
+                            await page.$('#challenge-running, #challenge-stage, .cf-turnstile, #cf-turnstile');
+
+        if (isChallenge) {
+            console.warn('⚠️ Cloudflare security challenge detected. Waiting up to 10s for stealth self-resolution...');
+            try {
+                await page.waitForNavigation({ timeout: 10000, waitUntil: 'networkidle2' });
+            } catch (_) {}
+        }
+
+        console.log('Attempting DOM extraction of savings rates...');
         const parsedRates = await page.evaluate(() => {
             const allElements = Array.from(document.querySelectorAll('*'));
 
-            // Find the deepest leaf element containing the label text
-            const labelEl = allElements.find(el =>
-                el.textContent &&
-                el.textContent.trim().includes('Sejfy na oszczędności (PLN)') &&
-                el.children.length === 0
-            );
+            const candidateLabels = [
+                'Sejfy na oszczędności (PLN)',
+                'Sejfy na oszczędności',
+                'Konta oszczędnościowe (PLN)',
+                'Konto oszczędnościowe (PLN)'
+            ];
 
-            if (!labelEl) {
-                console.log('Label element not found');
-                return null;
+            let labelEl = null;
+            for (const label of candidateLabels) {
+                labelEl = allElements.find(el =>
+                    el.textContent &&
+                    el.textContent.trim().includes(label) &&
+                    el.children.length === 0
+                );
+                if (labelEl) break;
             }
 
-            // Walk up to find the row container for THIS specific feature row
-            // We stop at the smallest ancestor that is a direct child of the grid/table container
-            // The row sibling cells should be at the same depth as the label cell
+            if (!labelEl) return null;
+
             let rowEl = labelEl.parentElement;
             while (rowEl && rowEl.tagName !== 'BODY') {
-                // The row container should have siblings that contain the % cells
                 const siblings = rowEl.parentElement
                     ? Array.from(rowEl.parentElement.children)
                     : [];
 
-                // Collect text from group of siblings (the row group)
                 const siblingTexts = siblings.map(s => (s.innerText || '').trim());
                 const allText = siblingTexts.join('\n');
 
-                // Extract only valid interest rate percentages (between 1% and 15%)
-                // Single pattern handles both "2,75%" and "4%" — range filter excludes junk
                 const matches = [...allText.matchAll(/(\d+(?:[.,]\d+)?)%/g)]
                     .map(m => parseFloat(m[1].replace(',', '.')))
-                    .filter(r => !isNaN(r) && r >= 1 && r <= 15);
+                    .filter(r => !isNaN(r) && r >= 0.5 && r <= 15.0);
 
                 if (matches.length >= 5) {
                     return matches.slice(0, 5);
@@ -92,32 +157,45 @@ async function scrapeRates() {
             return null;
         });
 
+        const existingData = loadExistingRates();
+        const existingRates = existingData?.rates || null;
+
         if (parsedRates && parsedRates.length >= 5) {
-            rates.Standard = parsedRates[0];
-            rates.Plus     = parsedRates[1];
-            rates.Premium  = parsedRates[2];
-            rates.Metal    = parsedRates[3];
-            rates.Ultra    = parsedRates[4];
-            console.log('Successfully extracted all 5 rates:', rates);
+            const extractedRates = {
+                Standard: parsedRates[0],
+                Plus:     parsedRates[1],
+                Premium:  parsedRates[2],
+                Metal:    parsedRates[3],
+                Ultra:    parsedRates[4]
+            };
+
+            validateRates(extractedRates);
+            console.log('✅ Successfully extracted and validated 5 live rates from Revolut:', extractedRates);
+
+            if (haveRatesChanged(existingRates, extractedRates)) {
+                const output = {
+                    updatedAt: new Date().toISOString(),
+                    rates: extractedRates
+                };
+                fs.writeFileSync(RATES_PATH, JSON.stringify(output, null, 2) + '\n');
+                console.log(`🚀 Rates have changed! Updated ${RATES_PATH}`);
+            } else {
+                console.log('ℹ️ Rates are unchanged. Preserving rates.json (skipping write to prevent empty commits).');
+            }
         } else {
-            console.warn('Could not reliably extract 5 rates. Using defaults. Parsed:', parsedRates);
+            console.warn('⚠️ Could not extract live rates (page blocked by Cloudflare or DOM structure changed).');
+            console.warn('🔒 PRESERVING existing rates.json without modification.');
+            if (existingRates) {
+                console.log('Current stored rates remain active:', existingRates);
+            }
         }
 
-        // Save to file
-        const output = {
-            updatedAt: new Date().toISOString(),
-            rates: rates
-        };
-
-        const outputPath = path.join(__dirname, '..', 'rates.json');
-        fs.writeFileSync(outputPath, JSON.stringify(output, null, 2));
-        console.log(`Rates saved to ${outputPath}`);
-
     } catch (error) {
-        console.error('Scraping failed:', error);
-        process.exit(1);
+        console.error('Scraping encountered an error:', error.message || error);
     } finally {
-        await browser.close();
+        if (browser) {
+            await browser.close();
+        }
     }
 }
 

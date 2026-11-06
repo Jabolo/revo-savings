@@ -69,9 +69,34 @@ from total earned interest at the user-entered rate. Revolut's Polish
 and [tax information](https://help.revolut.com/en-PL/help/app-features/savings-vaults/tax-on-instant-access-savings/)
 explain actual accrual and tax responsibilities.
 
-Plan and position costs are estimated proportionally over a 365-day year:
-12 monthly fees per year, or **an assumption of 10 monthly plan fees** for annual
-billing, plus 12 position-cost payments. It does not model an upfront annual
-payment or early cancellation. The annual discount is an editable simulation
-assumption, not a verified current tariff; check the price in the app. All rates
-and plan costs can be edited. This is an estimate, not an account statement.
+Plan and position costs are prorated over a 365-day year: 12 monthly fees,
+or the separately entered annual plan price, plus 12 position-cost payments.
+Annual billing uses the actual published annual tariff, never a multiplier of
+the monthly price. It does not model an upfront annual payment or early
+cancellation. All monthly and annual prices can be edited independently. This
+is a simulation, not an account statement.
+
+## Published plan prices
+
+`plan-prices.js` is a dated tariff snapshot checked against official Polish
+help pages on **6 November 2026** (not a live machine verification):
+
+| Plan | Monthly PLN | Annual PLN | Official source |
+| --- | ---: | ---: | --- |
+| Standard | 0 | 0 | [Standard](https://help.revolut.com/pl-PL/help/profile-and-plan/my-plan-benefits/revolut-plans1/standard-plan/) |
+| Plus | 19.99 | 200 | [Plus](https://help.revolut.com/pl-PL/help/profile-and-plan/my-plan-benefits/revolut-plans1/plus-plan/) |
+| Premium | 33.99 | 340 | [Premium](https://help.revolut.com/pl-PL/help/profile-and-plan/my-plan-benefits/revolut-plans1/premium-plan/) |
+| Metal | 55.99 | 560 | [Metal](https://help.revolut.com/pl-PL/help/profile-and-plan/my-plan-benefits/revolut-plans1/metal-plan/) |
+| Ultra | 260 | 2520 | [Ultra](https://help.revolut.com/pl-PL/help/profile-and-plan/my-plan-benefits/revolut-plans1/ultra-plan1/) |
+
+The UI shows the snapshot date and source links. Editing prices marks them as
+custom; it does not change their source record or claim a fresh verification.
+Prices and savings rates have separate provenance and freshness.
+
+On the same date, an ordinary identified request to the independent Plus help
+page also returned **HTTP 403**. Help pages publish savings maxima (up to a rate,
+potentially dependent on balance), but their direct automated readability was not
+established. No automatic fallback was added to them, search caches, undocumented
+APIs or proxy services. Official Open Banking documentation requires regulated
+third-party access; it does not establish an unauthenticated public savings-rate
+feed. No new access or credentials were requested or created.

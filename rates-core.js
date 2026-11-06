@@ -37,12 +37,13 @@
     const age = now - Date.parse(data.lastVerifiedAt);
     return age >= 0 && age <= 48 * 60 * 60 * 1000 ? 'verified' : 'stale';
   }
-  function calculatePlan({ principal, annualRate, days, taxRate, monthlyPlanCost, positionCost, annualBilling, compound }) {
+  function calculatePlan({ principal, annualRate, days, taxRate, monthlyPlanCost, annualPlanCost, positionCost, annualBilling, compound }) {
     if (![principal, annualRate, days, taxRate, monthlyPlanCost, positionCost].every(Number.isFinite)
       || principal < 0 || annualRate < 0 || annualRate > 100 || !Number.isInteger(days) || days < 0 || days > 36500
       || taxRate < 0 || taxRate > 100 || monthlyPlanCost < 0 || positionCost < 0) throw new Error('Invalid simulation inputs.');
-    // Approximation: 365-day year; annual plan estimated at ten monthly fees.
-    const monthlyCost = monthlyPlanCost * (annualBilling ? 10 / 12 : 1) + positionCost;
+    if (annualBilling && (!Number.isFinite(annualPlanCost) || annualPlanCost < 0)) throw new Error('Invalid annual plan price.');
+    // Independent annual tariff; prorate costs over a 365-day simulation year.
+    const monthlyCost = (annualBilling ? annualPlanCost / 12 : monthlyPlanCost) + positionCost;
     const periodCost = monthlyCost * 12 * days / 365;
     const grossInterest = compound
       ? principal * Math.expm1(days * Math.log1p(annualRate / 100 / 365))

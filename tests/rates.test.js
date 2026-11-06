@@ -86,7 +86,7 @@ test('freshness distinguishes missing, legacy, verified, expired, future and fai
   assert.equal(freshness(data, Date.parse(now) - 1), 'stale');
   assert.equal(freshness({ ...data, verificationStatus: 'error' }, Date.parse(now)), 'error');
 });
-const input = { principal: 100000, annualRate: 2, days: 365, taxRate: 19, monthlyPlanCost: 19.99, positionCost: 10, annualBilling: false, compound: false };
+const input = { principal: 100000, annualRate: 2, days: 365, taxRate: 19, monthlyPlanCost: 19.99, annualPlanCost: 200, positionCost: 10, annualBilling: false, compound: false };
 test('one-year simple interest, tax and 12 monthly fees match hand calculation', () => {
   const result = calculatePlan(input);
   assert.equal(result.grossInterest, 2000);
@@ -94,9 +94,9 @@ test('one-year simple interest, tax and 12 monthly fees match hand calculation',
   assert.ok(Math.abs(result.periodCost - 359.88) < 1e-8);
   assert.ok(Math.abs(result.profitAfterCost - 1260.12) < 1e-8);
 });
-test('annual billing has ten plan fees plus twelve months of position costs', () => {
+test('annual billing uses the independent annual tariff plus twelve position costs', () => {
   const result = calculatePlan({ ...input, annualBilling: true });
-  assert.ok(Math.abs(result.periodCost - 319.9) < 1e-8);
+  assert.ok(Math.abs(result.periodCost - 320) < 1e-8);
 });
 test('daily compounding matches an independent daily balance loop', () => {
   let balance = input.principal;
@@ -109,4 +109,38 @@ test('zero days/capital/rate and full tax are supported; invalid inputs fail', (
   assert.equal(calculatePlan({ ...input, annualRate: 0, compound: true }).grossInterest, 0);
   assert.equal(calculatePlan({ ...input, taxRate: 100 }).netInterest, 0);
   for (const change of [{ taxRate: 101 }, { days: 1.5 }, { principal: Infinity }, { principal: 1e308, annualRate: 100, days: 36500, compound: true }, { monthlyPlanCost: NaN }, { annualRate: -1 }]) assert.throws(() => calculatePlan({ ...input, ...change }));
+});
+
+const prices = require('../plan-prices');
+test('official Polish annual tariffs match the checked 6 November snapshot', () => {
+  assert.equal(prices.currency, 'PLN');
+  assert.equal(prices.verifiedOn, '2026-11-06');
+  assert.deepEqual(PLANS.map(plan => prices.plans[plan].annual), [0, 200, 340, 560, 2520]);
+  for (const plan of PLANS) {
+    const price = prices.plans[plan];
+    assert.ok(price.sourceUrl.startsWith('https://help.revolut.com/pl-PL/help/'));
+    const result = calculatePlan({ ...input, monthlyPlanCost: price.monthly, annualPlanCost: price.annual, annualBilling: true, positionCost: 0 });
+    assert.ok(Math.abs(result.periodCost - price.annual) < 1e-8);
+  }
+});
+test('Ultra is 2520 per year and 210 average per month, independently of 260 monthly', () => {
+  const result = calculatePlan({ ...input, monthlyPlanCost: 260, annualPlanCost: 2520, annualBilling: true, positionCost: 0 });
+  assert.equal(result.monthlyCost, 210);
+  assert.equal(result.periodCost, 2520);
+  assert.equal(calculatePlan({ ...input, monthlyPlanCost: 260, annualPlanCost: 2520, positionCost: 0 }).periodCost, 3120);
+});
+test('custom annual fees are independent, prorated by day, and validated', () => {
+  assert.equal(calculatePlan({ ...input, annualPlanCost: 1000, annualBilling: true, positionCost: 0, days: 73 }).periodCost, 200);
+  assert.equal(calculatePlan({ ...input, annualPlanCost: 2520, annualBilling: true, positionCost: 0, days: 730 }).periodCost, 5040);
+  for (const annualPlanCost of [undefined, NaN, Infinity, -1]) assert.throws(() => calculatePlan({ ...input, annualBilling: true, annualPlanCost }));
+});
+test('static price inputs match the sourced defaults used by the browser', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  for (const plan of PLANS) {
+    for (const [prefix, field] of [['cost', 'monthly'], ['annualCost', 'annual']]) {
+      const value = html.match(new RegExp(`id="${prefix}${plan}" value="([^\"]+)"`));
+      assert.ok(value, `${prefix}${plan}`);
+      assert.equal(Number(value[1]), prices.plans[plan][field]);
+    }
+  }
 });

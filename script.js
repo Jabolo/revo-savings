@@ -10,12 +10,13 @@ const translations = {
     lockPeriodLabel: '<i class="fas fa-calendar-alt me-2 text-primary"></i>Czas lokaty (dni):',
     billingLabel: 'Okres rozliczenia:',
     billingMonthly: 'Miesi\u0119cznie',
-    billingAnnual: 'Rocznie (szacunek: 10 opłat)' ,
+    billingAnnual: 'Rocznie',
 
     showPlans: 'Pokaż szczegóły planów oszczędności',
     plansHeader: 'Plany Oszczędności w Revo',
     planHeader: 'Plan',
     monthlyCostHeader: 'Miesięczny koszt (PLN)',
+    annualCostHeader: 'Roczny koszt (PLN)',
     annualRateHeader: 'Oprocentowanie roczne (%)',
     calcButton: '<i class="fas fa-calculator me-2"></i>Oblicz',
     calcLoading: '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Obliczanie...',
@@ -26,7 +27,7 @@ const translations = {
     lockPeriodLabelMod: 'Czas lokaty (dni):',
     recalculate: '<i class="fas fa-sync me-2"></i>Przelicz ponownie',
     resultsHeader: 'Wyniki symulacji',
-    monthlyCostResultHeader: 'Koszt miesięczny (PLN)',
+    monthlyCostResultHeader: 'Średni koszt miesięczny (PLN)',
     periodCostHeader: 'Koszt za okres (PLN)',
     rateHeader: 'Oprocentowanie (%)',
     grossHeader: 'Zysk brutto (PLN)',
@@ -43,7 +44,7 @@ const translations = {
     interestRate: 'Oprocentowanie',
     bestPlan: (plan, profit) => `<i class="fas fa-trophy me-2"></i>Najlepszy plan: <strong>${plan}</strong> (Zysk końcowy: <strong>${profit} PLN</strong>)`,
     allLosses: (plan, loss) => `<i class="fas fa-exclamation-triangle me-2"></i>Uwaga: Wszystkie plany generują straty. Najlepsza opcja: <strong>${plan}</strong> (Strata: <strong>${loss} PLN</strong>)`,
-    assumptions: 'Symulacja przy stałej stopie i roku 365 dni, bez zaokrągleń dziennych i opóźnienia pierwszej wpłaty. Podatek odejmowany od łącznych odsetek. Koszty proporcjonalne do dni; wariant roczny szacowany jako 10 opłat miesięcznych za rok. Sprawdź cenę planu i własną stawkę w aplikacji.',
+    assumptions: 'Symulacja przy stałej stopie i roku 365 dni, bez zaokrągleń dziennych i opóźnienia pierwszej wpłaty. Podatek odejmowany od łącznych odsetek. Koszty rozłożone proporcjonalnie na dni: osobna cena roczna lub 12 opłat miesięcznych. Symulacja nie uwzględnia płatności rocznej z góry ani kosztu wcześniejszej rezygnacji. Sprawdź cenę planu i własną stawkę w aplikacji.',
     invalidInput: 'Sprawdź liczby: dni 0–36500 (całkowite), podatek 0–100%, pozostałe wartości nieujemne; oprocentowanie do 100%.'
   },
   en: {
@@ -56,11 +57,12 @@ const translations = {
     lockPeriodLabel: '<i class="fas fa-calendar-alt me-2 text-primary"></i>Lock duration (days):',
     billingLabel: 'Billing period:',
     billingMonthly: 'Monthly',
-    billingAnnual: 'Annually (estimate: 10 fees)' ,
+    billingAnnual: 'Annually',
     showPlans: 'Show savings plan details',
     plansHeader: 'Revo Savings Plans',
     planHeader: 'Plan',
     monthlyCostHeader: 'Monthly cost (PLN)',
+    annualCostHeader: 'Annual cost (PLN)',
     annualRateHeader: 'Annual rate (%)',
     calcButton: '<i class="fas fa-calculator me-2"></i>Calculate',
     calcLoading: '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Calculating...',
@@ -71,7 +73,7 @@ const translations = {
     lockPeriodLabelMod: 'Lock duration (days):',
     recalculate: '<i class="fas fa-sync me-2"></i>Recalculate',
     resultsHeader: 'Simulation Results',
-    monthlyCostResultHeader: 'Monthly cost (PLN)',
+    monthlyCostResultHeader: 'Average monthly cost (PLN)',
     periodCostHeader: 'Cost for period (PLN)',
     rateHeader: 'Rate (%)',
     grossHeader: 'Gross interest (PLN)',
@@ -88,7 +90,7 @@ const translations = {
     interestRate: 'Interest rate',
     bestPlan: (plan, profit) => `<i class="fas fa-trophy me-2"></i>Best plan: <strong>${plan}</strong> (Final profit: <strong>${profit} PLN</strong>)`,
     allLosses: (plan, loss) => `<i class="fas fa-exclamation-triangle me-2"></i>Warning: All plans yield losses. Best option: <strong>${plan}</strong> (Loss: <strong>${loss} PLN</strong>)`,
-    assumptions: 'Estimate with a fixed rate and a 365-day year, without daily rounding or initial deposit settlement delay. Tax is deducted from total interest. Costs are prorated by day; annual billing is estimated as 10 monthly fees per year. Check your plan price and personal rate in the app.',
+    assumptions: 'Estimate with a fixed rate and a 365-day year, without daily rounding or initial deposit settlement delay. Tax is deducted from total interest. Costs are prorated by day using the separate annual price or 12 monthly fees. Upfront annual payment and early cancellation charges are not modelled. Check your plan price and personal rate in the app.',
     invalidInput: 'Check numbers: whole days 0–36500, tax 0–100%, other values non-negative; interest up to 100%.'
   }
 };
@@ -96,6 +98,7 @@ const translations = {
 let currentLang = ['pl', 'en'].includes(localStorage.getItem('lang')) ? localStorage.getItem('lang') : 'pl';
 let ratesData = null;
 let ratesEdited = false;
+let planPricesEdited = false;
 
 function applyTranslations() {
   const t = translations[currentLang];
@@ -113,6 +116,7 @@ function applyTranslations() {
   document.getElementById('langDropdown').textContent = currentLang.toUpperCase();
   updateGrossHeader();
   renderRatesStatus();
+  renderPlanPricesStatus();
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -205,11 +209,37 @@ document.addEventListener('DOMContentLoaded', function () {
       renderRatesStatus();
       triggerAutoCalc();
     });
-    document.getElementById(`cost${plan}`).addEventListener('input', triggerAutoCalc);
+    for (const prefix of ['cost', 'annualCost']) {
+      const input = document.getElementById(`${prefix}${plan}`);
+      input.value = RevoPlanPrices.plans[plan][prefix === 'cost' ? 'monthly' : 'annual'].toFixed(2);
+      input.addEventListener('input', () => {
+        planPricesEdited = true;
+        renderPlanPricesStatus();
+        triggerAutoCalc();
+      });
+    }
   });
   fetchLatestRates();
   setInterval(renderRatesStatus, 60000);
 });
+
+function renderPlanPricesStatus() {
+  const status = document.getElementById('planPricesStatus');
+  if (!status) return;
+  const date = new Date(`${RevoPlanPrices.verifiedOn}T00:00:00Z`).toLocaleDateString(currentLang === 'pl' ? 'pl-PL' : 'en-GB', { timeZone: 'UTC' });
+  status.textContent = currentLang === 'pl'
+    ? `${planPricesEdited ? 'Używasz własnych cen. ' : ''}Ceny początkowe sprawdzone ${date}. Źródła Revolut: `
+    : `${planPricesEdited ? 'Your custom prices are in use. ' : ''}Default prices checked on ${date}. Revolut sources: `;
+  RevoRates.PLANS.forEach((plan, index) => {
+    if (index) status.append(', ');
+    const link = document.createElement('a');
+    link.href = RevoPlanPrices.plans[plan].sourceUrl;
+    link.textContent = plan;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    status.append(link);
+  });
+}
 
 function renderRatesStatus() {
   const badge = document.getElementById('liveRatesBadge');
@@ -329,19 +359,18 @@ function calculateResults() {
   const billingOption = document.querySelector('input[name="billingOption"]:checked').value;
 
   // Pobierz dane dla poszczególnych planów
-  const plans = [
-    { planName: 'Standard', cost: parseFloat(document.getElementById('costStandard').value), rate: parseFloat(document.getElementById('rateStandard').value) },
-    { planName: 'Plus (19,99)', cost: parseFloat(document.getElementById('costPlus').value), rate: parseFloat(document.getElementById('ratePlus').value) },
-    { planName: 'Premium (33,99)', cost: parseFloat(document.getElementById('costPremium').value), rate: parseFloat(document.getElementById('ratePremium').value) },
-    { planName: 'Metal (55,99)', cost: parseFloat(document.getElementById('costMetal').value), rate: parseFloat(document.getElementById('rateMetal').value) },
-    { planName: 'Ultra (260)', cost: parseFloat(document.getElementById('costUltra').value), rate: parseFloat(document.getElementById('rateUltra').value) }
-  ];
+  const plans = RevoRates.PLANS.map(plan => ({
+    planName: plan,
+    cost: parseFloat(document.getElementById(`cost${plan}`).value),
+    annualCost: parseFloat(document.getElementById(`annualCost${plan}`).value),
+    rate: parseFloat(document.getElementById(`rate${plan}`).value)
+  }));
 
   let results;
   try {
     results = plans.map(plan => {
       const result = RevoRates.calculatePlan({ principal: savings, annualRate: plan.rate, days: lockPeriod,
-        taxRate, monthlyPlanCost: plan.cost, positionCost, annualBilling: billingOption === 'annual', compound });
+        taxRate, monthlyPlanCost: plan.cost, annualPlanCost: plan.annualCost, positionCost, annualBilling: billingOption === 'annual', compound });
       return { plan: plan.planName, rate: plan.rate.toFixed(2),
         ...Object.fromEntries(Object.entries(result).map(([key, value]) => [key, value.toFixed(2)])) };
     });

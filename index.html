@@ -105,8 +105,7 @@
               <div class="form-check form-check-inline">
                 <input class="form-check-input" type="radio" name="billingOption" id="billingAnnual" value="annual"
                   checked>
-                <label class="form-check-label" for="billingAnnual" data-i18n="billingAnnual">Rocznie (2 mies.
-                  gratis)</label>
+                <label class="form-check-label" for="billingAnnual" data-i18n="billingAnnual">Rocznie</label>
               </div>
               <div class="form-check form-check-inline">
                 <input class="form-check-input" type="radio" name="billingOption" id="billingMonthly" value="monthly">
@@ -127,12 +126,14 @@
           <div class="collapse" id="planDetails">
             <div class="card card-body">
               <h5 class="mb-3" data-i18n="plansHeader">Plany Oszczędności w Revo</h5>
+              <p id="planPricesStatus" class="small text-muted" role="status"></p>
               <div class="table-responsive">
                 <table class="table table-bordered plan-table">
                   <thead class="table-light">
                     <tr>
                       <th data-i18n="planHeader">Plan</th>
                       <th data-i18n="monthlyCostHeader">Miesięczny koszt (PLN)</th>
+                      <th data-i18n="annualCostHeader">Roczny koszt (PLN)</th>
                       <th data-i18n="annualRateHeader">Oprocentowanie roczne (%)</th>
                     </tr>
                   </thead>
@@ -143,40 +144,55 @@
                         <input type="number" class="form-control" id="costStandard" value="0" step="0.01" min="0">
                       </td>
                       <td>
+                        <input type="number" class="form-control" id="annualCostStandard" value="0" step="0.01" min="0">
+                      </td>
+                      <td>
                         <input type="number" class="form-control rate-cell" id="rateStandard" value="2.00" step="0.01">
                       </td>
                     </tr>
                     <tr>
-                      <td class="fw-medium">Plus (19,99)</td>
+                      <td class="fw-medium">Plus</td>
                       <td>
                         <input type="number" class="form-control" id="costPlus" value="19.99" step="0.01" min="0">
+                      </td>
+                      <td>
+                        <input type="number" class="form-control" id="annualCostPlus" value="200" step="0.01" min="0">
                       </td>
                       <td>
                         <input type="number" class="form-control rate-cell" id="ratePlus" value="2.00" step="0.01">
                       </td>
                     </tr>
                     <tr>
-                      <td class="fw-medium">Premium (33,99)</td>
+                      <td class="fw-medium">Premium</td>
                       <td>
                         <input type="number" class="form-control" id="costPremium" value="33.99" step="0.01" min="0">
+                      </td>
+                      <td>
+                        <input type="number" class="form-control" id="annualCostPremium" value="340" step="0.01" min="0">
                       </td>
                       <td>
                         <input type="number" class="form-control rate-cell" id="ratePremium" value="2.25" step="0.01">
                       </td>
                     </tr>
                     <tr>
-                      <td class="fw-medium">Metal (55,99)</td>
+                      <td class="fw-medium">Metal</td>
                       <td>
                         <input type="number" class="form-control" id="costMetal" value="55.99" step="0.01" min="0">
+                      </td>
+                      <td>
+                        <input type="number" class="form-control" id="annualCostMetal" value="560" step="0.01" min="0">
                       </td>
                       <td>
                         <input type="number" class="form-control rate-cell" id="rateMetal" value="3.00" step="0.01">
                       </td>
                     </tr>
                     <tr>
-                      <td class="fw-medium">Ultra (260)</td>
+                      <td class="fw-medium">Ultra</td>
                       <td>
                         <input type="number" class="form-control" id="costUltra" value="260.00" step="0.01" min="0">
+                      </td>
+                      <td>
+                        <input type="number" class="form-control" id="annualCostUltra" value="2520" step="0.01" min="0">
                       </td>
                       <td>
                         <input type="number" class="form-control rate-cell" id="rateUltra" value="3.25" step="0.01">
@@ -262,8 +278,7 @@
                   <div class="form-check form-check-inline">
                     <input class="form-check-input" type="radio" name="billingOptionModify" id="billingAnnualModify"
                       value="annual" checked>
-                    <label class="form-check-label" for="billingAnnualModify" data-i18n="billingAnnual">Rocznie (2 mies.
-                      gratis)</label>
+                    <label class="form-check-label" for="billingAnnualModify" data-i18n="billingAnnual">Rocznie</label>
                   </div>
                   <div class="form-check form-check-inline">
                     <input class="form-check-input" type="radio" name="billingOptionModify" id="billingMonthlyModify"
@@ -334,6 +349,7 @@
   <!-- Bootstrap Bundle JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <!-- External JS -->
+  <script src="plan-prices.js"></script>
   <script src="rates-core.js"></script>
   <script src="script.js"></script>
 </body>
